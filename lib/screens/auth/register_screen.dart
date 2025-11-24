@@ -18,7 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _telefoneController = TextEditingController();
   final _enderecoController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isAdmin = false; // For testing purposes, or hidden
+
 
   @override
   Widget build(BuildContext context) {
@@ -73,15 +73,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 12),
               // Hidden or explicit admin switch for now to facilitate testing
-              SwitchListTile(
-                title: const Text('Sou Responsável (Admin)'),
-                value: _isAdmin,
-                onChanged: (val) {
-                  setState(() {
-                    _isAdmin = val;
-                  });
-                },
-              ),
+              // Admin selection removed as per requirement
+              const SizedBox(height: 24),
               const SizedBox(height: 24),
               if (userProvider.isLoading)
                 const CircularProgressIndicator()
@@ -99,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             cpf: _cpfController.text.trim(),
                             telefone: _telefoneController.text.trim(),
                             endereco: _enderecoController.text.trim(),
-                            isAdmin: _isAdmin,
+                            isAdmin: false,
                           );
                           
                           await userProvider.signUp(
