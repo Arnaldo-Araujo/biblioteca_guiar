@@ -32,7 +32,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LoanProvider()),
       ],
       child: MaterialApp(
-        title: 'Biblioteca Guiar',
+        debugShowCheckedModeBanner: false,
+          title: 'Biblioteca Guiar',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           useMaterial3: true,
@@ -56,7 +57,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
