@@ -37,25 +37,20 @@ class FirestoreService {
 
   // Loans
   Future<void> loanBook(LoanModel loan) async {
-    // Transaction to ensure atomic update of book quantity and loan creation
-    await _db.runTransaction((transaction) async {
-      DocumentReference bookRef = _db.collection('books').doc(loan.bookId);
-      DocumentSnapshot bookSnapshot = await transaction.get(bookRef);
+    WriteBatch batch = _db.batch();
 
-      if (!bookSnapshot.exists) {
-        throw Exception("Livro não encontrado!");
-      }
+    DocumentReference bookRef = _db.collection('books').doc(loan.bookId);
+    DocumentReference loanRef = _db.collection('loans').doc(); // Auto-ID
 
-      int currentQuantity = bookSnapshot.get('quantidadeDisponivel');
-      if (currentQuantity <= 0) {
-        throw Exception("Livro indisponível!");
-      }
+    // Decrement book quantity atomically
+    // Using update with FieldValue.increment as requested for strict security rules
+    batch.update(bookRef, {'quantidadeDisponivel': FieldValue.increment(-1)});
 
-      transaction.update(bookRef, {'quantidadeDisponivel': currentQuantity - 1});
-      
-      DocumentReference loanRef = _db.collection('loans').doc(); // Auto-ID
-      transaction.set(loanRef, loan.toMap());
-    });
+    // Create loan
+    // loan.toMap() already contains 'userId'
+    batch.set(loanRef, loan.toMap());
+
+    await batch.commit();
   }
 
   Future<void> returnBook(String loanId, String bookId) async {
