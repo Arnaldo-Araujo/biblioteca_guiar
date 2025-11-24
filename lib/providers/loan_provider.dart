@@ -3,7 +3,10 @@ import '../models/loan_model.dart';
 import '../services/firestore_service.dart';
 
 class LoanProvider with ChangeNotifier {
-  final FirestoreService _firestoreService = FirestoreService();
+  final FirestoreService _firestoreService;
+
+  LoanProvider({FirestoreService? firestoreService})
+      : _firestoreService = firestoreService ?? FirestoreService();
 
   Stream<List<LoanModel>> getUserLoans(String uid) {
     return _firestoreService.getUserLoans(uid);

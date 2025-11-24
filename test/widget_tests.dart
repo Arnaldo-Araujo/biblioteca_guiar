@@ -1,9 +1,9 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:mockito/mockito.dart';
-import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:biblioteca_guiar/main.dart';
 import 'package:biblioteca_guiar/providers/user_provider.dart';
 import 'package:biblioteca_guiar/providers/book_provider.dart';
@@ -11,69 +11,199 @@ import 'package:biblioteca_guiar/providers/loan_provider.dart';
 import 'package:biblioteca_guiar/screens/auth/login_screen.dart';
 import 'package:biblioteca_guiar/screens/auth/register_screen.dart';
 import 'package:biblioteca_guiar/screens/home/home_screen.dart';
+import 'package:biblioteca_guiar/services/auth_service.dart';
+import 'package:biblioteca_guiar/services/firestore_service.dart';
+import 'package:biblioteca_guiar/models/user_model.dart';
+import 'package:biblioteca_guiar/models/book_model.dart';
+import 'package:biblioteca_guiar/models/loan_model.dart';
 
-// Mock Providers if needed, or use real ones with Mock Firebase
-// Since we want to test the flow, using Mock Firebase is better.
+// Manual Mocks
+class MockAuthService implements AuthService {
+  final StreamController<User?> _authStateController = StreamController<User?>.broadcast();
+  
+  @override
+  Stream<User?> get authStateChanges => _authStateController.stream;
+
+  void emitUser(User? user) {
+    _authStateController.add(user);
+  }
+
+  @override
+  Future<User?> signIn(String email, String password) async {
+    return null; 
+  }
+
+  @override
+  Future<User?> signUp(String email, String password, UserModel userModel) async {
+    return null; 
+  }
+
+  @override
+  Future<void> signOut() async {
+    emitUser(null);
+  }
+}
+
+class MockFirestoreService implements FirestoreService {
+  @override
+  Future<UserModel?> getUser(String uid) async {
+    return UserModel(
+      uid: uid,
+      nome: 'Test User',
+      email: 'test@example.com',
+      cpf: '12345678900',
+      telefone: '123456789',
+      endereco: 'Test Address',
+      isAdmin: false,
+    );
+  }
+  
+  @override
+  Future<void> saveUser(UserModel user) async {}
+  
+  @override
+  Future<List<UserModel>> getAllUsers() async => [];
+
+  @override
+  Stream<List<BookModel>> getBooks() => Stream.value([]);
+
+  @override
+  Future<void> addBook(BookModel book) async {}
+
+  @override
+  Future<void> updateBook(BookModel book) async {}
+
+  @override
+  Future<void> loanBook(LoanModel loan) async {}
+
+  @override
+  Future<void> returnBook(String loanId, String bookId) async {}
+
+  @override
+  Future<void> renewLoan(String loanId, DateTime newDate) async {}
+
+  @override
+  Stream<List<LoanModel>> getUserLoans(String uid) => Stream.value([]);
+
+  @override
+  Stream<List<LoanModel>> getAllLoans() => Stream.value([]);
+}
+
+class MockBookProvider extends ChangeNotifier implements BookProvider {
+  @override
+  Stream<List<BookModel>> get booksStream => Stream.value([]);
+  
+  @override
+  Future<void> addBook(BookModel book, File? imageFile) async {}
+
+  @override
+  Future<void> updateBook(BookModel book, File? imageFile) async {}
+}
+
+class MockLoanProvider extends ChangeNotifier implements LoanProvider {
+  @override
+  Stream<List<LoanModel>> getUserLoans(String uid) => Stream.value([]);
+
+  @override
+  Stream<List<LoanModel>> getAllLoans() => Stream.value([]);
+
+  @override
+  Future<void> loanBook(LoanModel loan) async {}
+
+  @override
+  Future<void> returnBook(String loanId, String bookId) async {}
+
+  @override
+  Future<void> renewLoan(String loanId, DateTime newDate) async {}
+}
 
 void main() {
-  late MockFirebaseAuth mockAuth;
-  late FakeFirebaseFirestore mockFirestore;
+  late MockAuthService mockAuthService;
+  late MockFirestoreService mockFirestoreService;
+  late NavigatorObserver mockObserver;
 
   setUp(() {
-    mockAuth = MockFirebaseAuth();
-    mockFirestore = FakeFirebaseFirestore();
+    mockAuthService = MockAuthService();
+    mockFirestoreService = MockFirestoreService();
+    mockObserver = NavigatorObserver();
   });
 
   Widget createWidgetUnderTest() {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()), // We might need to inject mocks into UserProvider
-        ChangeNotifierProvider(create: (_) => BookProvider()),
-        ChangeNotifierProvider(create: (_) => LoanProvider()),
+        ChangeNotifierProvider(
+          create: (_) => UserProvider(
+            authService: mockAuthService,
+            firestoreService: mockFirestoreService,
+          ),
+        ),
+        ChangeNotifierProvider<BookProvider>(create: (_) => MockBookProvider()),
+        ChangeNotifierProvider<LoanProvider>(create: (_) => MockLoanProvider()),
       ],
       child: MaterialApp(
         home: const AuthWrapper(),
+        navigatorObservers: [mockObserver],
         routes: {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
+          '/my_loans': (context) => const Scaffold(body: Text('My Loans')),
+          '/manage_loans': (context) => const Scaffold(body: Text('Manage Loans')),
+          '/add_book': (context) => const Scaffold(body: Text('Add Book')),
         },
       ),
     );
   }
 
-  // Note: To properly test UserProvider with MockFirebase, we need to be able to inject the mocks or override the internal services.
-  // Since UserProvider instantiates AuthService and FirestoreService internally, it's hard to mock them without dependency injection.
-  // For this task, I will create a test that focuses on the UI widgets assuming the provider logic works, 
-  // OR I will modify UserProvider to accept services in constructor.
-  
-  // Let's assume we can't easily change UserProvider right now without breaking things, 
-  // so we will write tests that verify the UI elements exist.
-  
-  testWidgets('Login Screen shows email and password fields', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+  testWidgets('Login Screen renders correctly', (WidgetTester tester) async {
+    await tester.pumpWidget(createWidgetUnderTest());
+    mockAuthService.emitUser(null); // Emit after listener is attached
+    await tester.pump(); 
 
+    expect(find.byType(LoginScreen), findsOneWidget);
     expect(find.text('Email'), findsOneWidget);
     expect(find.text('Senha'), findsOneWidget);
-    expect(find.text('ENTRAR'), findsOneWidget);
-    expect(find.text('Cadastre-se'), findsOneWidget);
   });
 
   testWidgets('Register Screen does NOT show admin switch', (WidgetTester tester) async {
-    // We need to provide UserProvider for RegisterScreen
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => UserProvider()),
-        ],
-        child: const MaterialApp(home: RegisterScreen()),
-      ),
-    );
+    await tester.pumpWidget(createWidgetUnderTest());
+    mockAuthService.emitUser(null);
+    await tester.pump();
 
+    // Navigate to register
+    await tester.tap(find.text('Quero me cadastrar'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RegisterScreen), findsOneWidget);
+    expect(find.text('Sou Responsável (Admin)'), findsNothing);
     expect(find.text('Nome Completo'), findsOneWidget);
-    expect(find.text('Email'), findsOneWidget);
-    expect(find.text('CPF'), findsOneWidget);
-    expect(find.text('Sou Responsável (Admin)'), findsNothing); // Verify admin switch is gone
-    expect(find.text('CADASTRAR'), findsOneWidget);
+  });
+
+  testWidgets('Registration flow pops back to login/home', (WidgetTester tester) async {
+    await tester.pumpWidget(createWidgetUnderTest());
+    mockAuthService.emitUser(null);
+    await tester.pump();
+
+    // Go to register
+    await tester.tap(find.text('Quero me cadastrar'));
+    await tester.pumpAndSettle();
+
+    // Fill form
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nome Completo'), 'Test User');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'test@example.com');
+    await tester.enterText(find.widgetWithText(TextFormField, 'CPF'), '12345678900');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Telefone (WhatsApp)'), '123456789');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Endereço'), 'Test Address');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Senha'), 'password123');
+
+    // Tap register
+    await tester.tap(find.text('CADASTRAR'));
+    await tester.pump(); 
+
+    await tester.pumpAndSettle();
+
+    // Verify we are back at LoginScreen
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(RegisterScreen), findsNothing);
   });
 }

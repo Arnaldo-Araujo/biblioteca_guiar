@@ -5,8 +5,8 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 
 class UserProvider with ChangeNotifier {
-  final AuthService authService = AuthService();
-  final FirestoreService _firestoreService = FirestoreService();
+  final AuthService authService;
+  final FirestoreService _firestoreService;
 
   UserModel? _userModel;
   UserModel? get userModel => _userModel;
@@ -14,7 +14,9 @@ class UserProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  UserProvider() {
+  UserProvider({AuthService? authService, FirestoreService? firestoreService})
+      : authService = authService ?? AuthService(),
+        _firestoreService = firestoreService ?? FirestoreService() {
     _checkCurrentUser();
   }
 

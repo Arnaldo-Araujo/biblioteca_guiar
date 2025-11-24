@@ -5,8 +5,12 @@ import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 
 class BookProvider with ChangeNotifier {
-  final FirestoreService _firestoreService = FirestoreService();
-  final StorageService _storageService = StorageService();
+  final FirestoreService _firestoreService;
+  final StorageService _storageService;
+
+  BookProvider({FirestoreService? firestoreService, StorageService? storageService})
+      : _firestoreService = firestoreService ?? FirestoreService(),
+        _storageService = storageService ?? StorageService();
 
   Stream<List<BookModel>> get booksStream => _firestoreService.getBooks();
 
