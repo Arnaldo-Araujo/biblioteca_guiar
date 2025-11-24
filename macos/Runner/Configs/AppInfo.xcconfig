@@ -8,7 +8,7 @@
 PRODUCT_NAME = biblioteca_guiar
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = br.com.i9android..bibliotecaGuiar
+PRODUCT_BUNDLE_IDENTIFIER = br.com.i9android.bibliotecaGuiar
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 br.com.i9android. All rights reserved.
