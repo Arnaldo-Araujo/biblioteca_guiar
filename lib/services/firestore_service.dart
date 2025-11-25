@@ -20,6 +20,10 @@ class FirestoreService {
     return snapshot.docs.map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>)).toList();
   }
 
+  Future<void> updateUser(UserModel user) async {
+    await _db.collection('users').doc(user.uid).update(user.toMap());
+  }
+
   // Books
   Stream<List<BookModel>> getBooks() {
     return _db.collection('books').snapshots().map((snapshot) {

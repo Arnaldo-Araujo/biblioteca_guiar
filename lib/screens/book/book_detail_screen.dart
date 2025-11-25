@@ -55,43 +55,117 @@ class BookDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
                   
-                  if (user != null)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: book.quantidadeDisponivel > 0
-                            ? () async {
-                                try {
-                                  // Create Loan
-                                  LoanModel loan = LoanModel(
-                                    id: '',
-                                    userId: user.uid,
-                                    bookId: book.id,
-                                    bookTitle: book.titulo,
-                                    userName: user.nome,
-                                    dataEmprestimo: DateTime.now(),
-                                    dataPrevistaDevolucao: DateTime.now().add(const Duration(days: 7)),
-                                    status: 'ativo',
-                                  );
+                    if (user != null) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: book.quantidadeDisponivel > 0
+                              ? () async {
+                                  try {
+                                    // Create Loan
+                                    LoanModel loan = LoanModel(
+                                      id: '',
+                                      userId: user.uid,
+                                      bookId: book.id,
+                                      bookTitle: book.titulo,
+                                      userName: user.nome,
+                                      dataEmprestimo: DateTime.now(),
+                                      dataPrevistaDevolucao: DateTime.now().add(const Duration(days: 7)),
+                                      status: 'ativo',
+                                    );
 
-                                  await loanProvider.loanBook(loan);
+                                    await loanProvider.loanBook(loan);
+                                    
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Empréstimo realizado com sucesso!')),
+                                      );
+                                      Navigator.pop(context);
+                                    }
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Erro: $e')),
+                                    );
+                                  }
+                                }
+                              : null,
+                          child: const Text('SOLICITAR EMPRÉSTIMO'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+
+                    if (user?.isAdmin == true || user?.isHelper == true) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.person_add),
+                          label: const Text('EMPRESTAR PARA LEITOR'),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                          onPressed: book.quantidadeDisponivel > 0
+                              ? () async {
+                                  // Show user selection dialog
+                                  // This requires fetching users. We can use UserProvider.
+                                  final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                  final users = await userProvider.getAllUsers();
                                   
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Empréstimo realizado com sucesso!')),
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Selecione o Leitor'),
+                                        content: SizedBox(
+                                          width: double.maxFinite,
+                                          child: ListView.builder(
+                                            shrinkWrap: true,
+                                            itemCount: users.length,
+                                            itemBuilder: (context, index) {
+                                              final u = users[index];
+                                              return ListTile(
+                                                title: Text(u.nome),
+                                                subtitle: Text(u.email),
+                                                onTap: () async {
+                                                  Navigator.pop(context); // Close dialog
+                                                  try {
+                                                    LoanModel loan = LoanModel(
+                                                      id: '',
+                                                      userId: u.uid, // Loan for THIS user
+                                                      bookId: book.id,
+                                                      bookTitle: book.titulo,
+                                                      userName: u.nome,
+                                                      dataEmprestimo: DateTime.now(),
+                                                      dataPrevistaDevolucao: DateTime.now().add(const Duration(days: 7)),
+                                                      status: 'ativo',
+                                                    );
+
+                                                    await loanProvider.loanBook(loan);
+                                                    
+                                                    if (context.mounted) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(content: Text('Empréstimo para ${u.nome} realizado!')),
+                                                      );
+                                                      Navigator.pop(context); // Close screen
+                                                    }
+                                                  } catch (e) {
+                                                    if (context.mounted) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(content: Text('Erro: $e')),
+                                                      );
+                                                    }
+                                                  }
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
                                     );
-                                    Navigator.pop(context);
                                   }
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Erro: $e')),
-                                  );
                                 }
-                              }
-                            : null,
-                        child: const Text('SOLICITAR EMPRÉSTIMO'),
+                              : null,
+                        ),
                       ),
-                    ),
+                    ],
                     
                   if (user?.isAdmin == true) ...[
                     const SizedBox(height: 10),

@@ -62,4 +62,13 @@ class UserProvider with ChangeNotifier {
     _userModel = null;
     notifyListeners();
   }
+
+  Future<List<UserModel>> getAllUsers() {
+    return _firestoreService.getAllUsers();
+  }
+
+  Future<void> updateUser(UserModel user) async {
+    await _firestoreService.updateUser(user);
+    notifyListeners();
+  }
 }
