@@ -40,18 +40,19 @@ class AppDrawer extends StatelessWidget {
               Navigator.pushNamed(context, '/my_loans');
             },
           ),
-          if (user?.isAdmin == true) ...[
+          if (user?.isAdmin == true || user?.isHelper == true) ...[
             const Divider(),
             const ListTile(
               title: Text('ADMINISTRATIVO', style: TextStyle(color: Colors.grey)),
             ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Usuários'),
-              onTap: () {
-                // Navigate to users list (if implemented)
-              },
-            ),
+            if (user?.isAdmin == true)
+              ListTile(
+                leading: const Icon(Icons.people),
+                title: const Text('Usuários'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/users');
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.library_books),
               title: const Text('Gerenciar Empréstimos'),
@@ -59,13 +60,14 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pushNamed(context, '/manage_loans');
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.add_box),
-              title: const Text('Cadastrar Livro'),
-              onTap: () {
-                Navigator.pushNamed(context, '/add_book');
-              },
-            ),
+            if (user?.isAdmin == true)
+              ListTile(
+                leading: const Icon(Icons.add_box),
+                title: const Text('Cadastrar Livro'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/add_book');
+                },
+              ),
           ],
           const Divider(),
           ListTile(

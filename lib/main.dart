@@ -11,6 +11,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/book/add_edit_book_screen.dart';
 import 'screens/loans/my_loans_screen.dart';
 import 'screens/loans/manage_loans_screen.dart';
+import 'screens/admin/users_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,33 +38,6 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
           useMaterial3: true,
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.grey[100],
-          ),
-        ),
-        home: const AuthWrapper(),
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/add_book': (context) => const AddEditBookScreen(),
-          '/edit_book': (context) => const AddEditBookScreen(),
-          '/my_loans': (context) => const MyLoansScreen(),
-          '/manage_loans': (context) => const ManageLoansScreen(),
-        },
-      ),
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
     
     // Check if user is authenticated (this logic might need refinement based on how UserProvider initializes)
     // For now, we rely on the stream listener in UserProvider which updates userModel.
