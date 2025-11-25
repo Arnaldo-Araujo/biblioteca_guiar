@@ -39,6 +39,9 @@ class MockAuthService implements AuthService {
   }
 
   @override
+  Future<void> sendPasswordResetEmail(String email) async {}
+
+  @override
   Future<void> signOut() async {
     emitUser(null);
   }

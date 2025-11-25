@@ -86,6 +86,10 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> sendPasswordResetEmail(String email) async {
+    await authService.sendPasswordResetEmail(email);
+  }
+
   Future<void> signOut() async {
     await authService.signOut();
     _userModel = null;
