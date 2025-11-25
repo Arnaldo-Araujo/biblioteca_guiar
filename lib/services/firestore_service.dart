@@ -136,7 +136,10 @@ class FirestoreService {
     });
   }
 
-  Stream<List<LoanModel>> getUserLoans(String uid) {
+  Stream<List<LoanModel>> getUserLoans() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return Stream.value([]);
+    
     return _db.collection('loans')
         .where('userId', isEqualTo: uid)
         .orderBy('dataEmprestimo', descending: true)
