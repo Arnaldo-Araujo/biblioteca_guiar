@@ -1,0 +1,12 @@
+Analyzing biblioteca_guiar...                                   
+
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\admin\users_list_screen.dart:84:58 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\admin\users_list_screen.dart:91:58 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\auth\login_screen.dart:66:48 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\auth\register_screen.dart:105:43 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\auth\register_screen.dart:108:48 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\book\add_edit_book_screen.dart:90:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\book\book_detail_screen.dart:86:58 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\loans\manage_loans_screen.dart:52:46 - use_build_context_synchronously
+warning - The method doesn't override an inherited method - test\widget_tests.dart:62:16 - override_on_non_overriding_member
+
