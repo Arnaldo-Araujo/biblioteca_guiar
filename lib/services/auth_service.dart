@@ -25,8 +25,21 @@ class AuthService {
       User? user = result.user;
 
       if (user != null) {
+        // Inject UID into model before saving
+        UserModel newUser = UserModel(
+          uid: user.uid,
+          nome: userModel.nome,
+          email: userModel.email,
+          cpf: userModel.cpf,
+          telefone: userModel.telefone,
+          endereco: userModel.endereco,
+          isAdmin: userModel.isAdmin,
+          isHelper: userModel.isHelper,
+          photoUrl: userModel.photoUrl,
+        );
+
         // Save extra user data to Firestore
-        await _firestore.collection('users').doc(user.uid).set(userModel.toMap());
+        await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
       }
       return user;
     } catch (e) {

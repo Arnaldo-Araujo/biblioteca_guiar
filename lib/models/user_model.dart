@@ -48,4 +48,19 @@ class UserModel {
       photoUrl: map['photoUrl'],
     );
   }
+
+  factory UserModel.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return UserModel(
+      uid: doc.id, // Priority: Use document ID
+      nome: data['nome'] ?? '',
+      email: data['email'] ?? '',
+      cpf: data['cpf'] ?? '',
+      telefone: data['telefone'] ?? '',
+      endereco: data['endereco'] ?? '',
+      isAdmin: data['isAdmin'] ?? false,
+      isHelper: data['isHelper'] ?? false,
+      photoUrl: data['photoUrl'],
+    );
+  }
 }
