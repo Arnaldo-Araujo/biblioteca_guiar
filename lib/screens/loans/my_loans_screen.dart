@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../models/loan_model.dart';
 import '../../providers/loan_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../widgets/custom_network_image.dart';
 
 class MyLoansScreen extends StatelessWidget {
   const MyLoansScreen({super.key});
@@ -68,30 +69,47 @@ class MyLoansScreen extends StatelessWidget {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ListTile(
-            leading: isReserved 
-                ? const Icon(Icons.watch_later, color: Colors.amber, size: 40)
-                : (isHistory ? const Icon(Icons.check_circle, color: Colors.green, size: 40) : const Icon(Icons.book, color: Colors.blue, size: 40)),
-            title: Text(loan.bookTitle),
+            leading: CustomNetworkImage(
+                imageUrl: null, // We don't have book image in LoanModel yet, use fallback
+                width: 50,
+                height: 70,
+                fit: BoxFit.cover,
+                fallbackIcon: Icons.book,
+              ),
+            title: Text(loan.bookTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 8),
                 if (isReserved)
-                  const Text('Status: AGUARDANDO RETIRADA', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold))
+                  const Chip(
+                    label: Text('⏳ Aguardando Retirada', style: TextStyle(color: Colors.black)),
+                    backgroundColor: Colors.amberAccent,
+                    padding: EdgeInsets.zero,
+                  )
+                else if (isHistory)
+                  const Chip(
+                    label: Text('✅ Devolvido', style: TextStyle(color: Colors.white)),
+                    backgroundColor: Colors.grey,
+                    padding: EdgeInsets.zero,
+                  )
                 else
+                  const Chip(
+                    label: Text('📖 Com você', style: TextStyle(color: Colors.white)),
+                    backgroundColor: Colors.green,
+                    padding: EdgeInsets.zero,
+                  ),
+                
+                const SizedBox(height: 4),
+                if (!isReserved) ...[
                   Text('Empréstimo: ${dateFormat.format(loan.dataEmprestimo)}'),
-                
-                Text('Devolução Prevista: ${dateFormat.format(loan.dataPrevistaDevolucao)}'),
-                
-                if (loan.dataDevolucaoReal != null)
-                  Text('Devolvido em: ${dateFormat.format(loan.dataDevolucaoReal!)}',
-                      style: const TextStyle(color: Colors.green)),
+                  Text('Devolução: ${dateFormat.format(loan.dataPrevistaDevolucao)}'),
+                ],
+                if (isHistory && loan.dataDevolucaoReal != null)
+                  Text('Devolvido em: ${dateFormat.format(loan.dataDevolucaoReal!)}'),
               ],
             ),
-            trailing: isReserved
-                ? null
-                : (isHistory
-                    ? null
-                    : const Icon(Icons.timer, color: Colors.orange)),
+            isThreeLine: true,
           ),
         );
       },

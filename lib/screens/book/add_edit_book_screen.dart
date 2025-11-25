@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
 import '../../providers/book_provider.dart';
+import '../../widgets/custom_network_image.dart';
 
 class AddEditBookScreen extends StatefulWidget {
   const AddEditBookScreen({super.key});
@@ -105,17 +106,70 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
           key: _formKey,
           child: Column(
             children: [
-              GestureDetector(
-                onTap: _pickImage,
+              InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => SafeArea(
+                      child: Wrap(
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.camera_alt),
+                            title: const Text('Câmera'),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              final picker = ImagePicker();
+                              final pickedFile = await picker.pickImage(source: ImageSource.camera);
+                              if (pickedFile != null) {
+                                setState(() {
+                                  _imageFile = File(pickedFile.path);
+                                });
+                              }
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.photo_library),
+                            title: const Text('Galeria'),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              _pickImage();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
                 child: Container(
                   height: 200,
                   width: 150,
-                  color: Colors.grey[300],
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey),
+                  ),
                   child: _imageFile != null
-                      ? Image.file(_imageFile!, fit: BoxFit.cover)
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(_imageFile!, fit: BoxFit.cover),
+                        )
                       : (_currentImageUrl != null && _currentImageUrl!.isNotEmpty
-                          ? Image.network(_currentImageUrl!, fit: BoxFit.cover)
-                          : const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)),
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: CustomNetworkImage(
+                                imageUrl: _currentImageUrl!,
+                                fit: BoxFit.cover,
+                                fallbackIcon: Icons.book,
+                              ),
+                            )
+                          : const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
+                                SizedBox(height: 8),
+                                Text('Adicionar Capa', style: TextStyle(color: Colors.grey)),
+                              ],
+                            )),
                 ),
               ),
               const SizedBox(height: 16),
@@ -143,11 +197,28 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
                 validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _sinopseController,
-                decoration: const InputDecoration(labelText: 'Sinopse'),
-                maxLines: 3,
-                validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _sinopseController,
+                      decoration: const InputDecoration(labelText: 'Sinopse'),
+                      maxLines: 3,
+                      validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.document_scanner),
+                    tooltip: 'Escanear Texto',
+                    onPressed: () {
+                      // Placeholder for OCR function
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Funcionalidade de OCR em desenvolvimento')),
+                      );
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               TextFormField(
