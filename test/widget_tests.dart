@@ -58,11 +58,13 @@ class MockFirestoreService implements FirestoreService {
     );
   }
   
-  @override
-  Future<void> saveUser(UserModel user) async {}
+
   
   @override
   Future<List<UserModel>> getAllUsers() async => [];
+
+  @override
+  Future<void> updateUser(UserModel user) async {}
 
   @override
   Stream<List<BookModel>> getBooks() => Stream.value([]);

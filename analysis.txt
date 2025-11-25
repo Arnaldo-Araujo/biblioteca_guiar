@@ -1,0 +1,18 @@
+Analyzing biblioteca_guiar...                                   
+
+  error - Unexpected text 'return' - lib\main.dart:47:5 - unexpected_token
+  error - Too many positional arguments: 0 expected, but 1 found - lib\main.dart:47:12 - extra_positional_arguments_could_be_named
+  error - Undefined name 'userProvider' - lib\main.dart:48:15 - undefined_identifier
+  error - Expected to find ')' - lib\main.dart:58:6 - expected_token
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\admin\users_list_screen.dart:84:58 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\admin\users_list_screen.dart:91:58 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\auth\login_screen.dart:66:48 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\auth\register_screen.dart:105:43 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\auth\register_screen.dart:108:48 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\book\add_edit_book_screen.dart:90:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\book\book_detail_screen.dart:86:58 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\loans\manage_loans_screen.dart:52:46 - use_build_context_synchronously
+  error - Missing concrete implementation of 'class FirestoreService.updateUser' - test\widget_tests.dart:47:7 - non_abstract_class_inherits_abstract_member
+warning - The method doesn't override an inherited method - test\widget_tests.dart:62:16 - override_on_non_overriding_member
+  error - The name 'AuthWrapper' isn't a class - test\widget_tests.dart:144:21 - creation_with_non_type
+

@@ -34,18 +34,41 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-          title: 'Biblioteca Guiar',
+        title: 'Biblioteca Guiar',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           useMaterial3: true,
-    
-    // Check if user is authenticated (this logic might need refinement based on how UserProvider initializes)
-    // For now, we rely on the stream listener in UserProvider which updates userModel.
-    // However, UserProvider might take a moment to initialize. 
-    // A better approach is to use a StreamBuilder here on authStateChanges directly or check userProvider.userModel
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            filled: true,
+            fillColor: Colors.grey[100],
+          ),
+        ),
+        home: const AuthWrapper(),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/add_book': (context) => const AddEditBookScreen(),
+          '/edit_book': (context) => const AddEditBookScreen(),
+          '/my_loans': (context) => const MyLoansScreen(),
+          '/manage_loans': (context) => const ManageLoansScreen(),
+          '/users': (context) => const UsersListScreen(),
+        },
+      ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     
     return StreamBuilder(
-      stream: userProvider.authService.authStateChanges, // Accessing authService directly
+      stream: userProvider.authService.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
