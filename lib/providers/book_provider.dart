@@ -65,4 +65,21 @@ class BookProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> deleteBook(String bookId) async {
+    try {
+      // Check if book has any loans (active or historical)
+      bool hasLoans = await _firestoreService.checkBookHasLoans(bookId);
+      
+      if (hasLoans) {
+        // Soft delete: book has loan history
+        await _firestoreService.softDeleteBook(bookId);
+      } else {
+        // Hard delete: book never loaned, safe to remove completely
+        await _firestoreService.deleteBook(bookId);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

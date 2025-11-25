@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import 'custom_network_image.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -17,12 +18,13 @@ class AppDrawer extends StatelessWidget {
           UserAccountsDrawerHeader(
             accountName: Text(user?.nome ?? 'Usuário'),
             accountEmail: Text(user?.email ?? ''),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Text(
-                user?.nome.isNotEmpty == true ? user!.nome[0].toUpperCase() : 'U',
-                style: const TextStyle(fontSize: 40.0),
-              ),
+            currentAccountPicture: CustomNetworkImage(
+              imageUrl: user?.photoUrl,
+              width: 72,
+              height: 72,
+              isCircular: true,
+              fallbackIcon: Icons.person,
+              fallbackIconSize: 40,
             ),
           ),
           ListTile(

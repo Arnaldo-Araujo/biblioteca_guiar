@@ -7,6 +7,7 @@ class BookModel {
   final String sinopse;
   final int quantidadeDisponivel;
   final String imageUrl;
+  final bool isActive;
 
   BookModel({
     required this.id,
@@ -17,6 +18,7 @@ class BookModel {
     required this.sinopse,
     required this.quantidadeDisponivel,
     required this.imageUrl,
+    this.isActive = true,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +31,7 @@ class BookModel {
       'sinopse': sinopse,
       'quantidadeDisponivel': quantidadeDisponivel,
       'imageUrl': imageUrl,
+      'isActive': isActive,
     };
   }
 
@@ -42,6 +45,7 @@ class BookModel {
       sinopse: map['sinopse'] ?? '',
       quantidadeDisponivel: map['quantidadeDisponivel'] ?? 0,
       imageUrl: map['imageUrl'] ?? '',
+      isActive: map['isActive'] ?? true,
     );
   }
 }

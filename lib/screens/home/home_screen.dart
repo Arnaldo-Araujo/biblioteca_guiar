@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
 import '../../providers/book_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/custom_network_image.dart';
 import '../book/book_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -87,14 +88,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: book.imageUrl.isNotEmpty
-                                  ? Image.network(
-                                      book.imageUrl,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      errorBuilder: (c, o, s) => const Icon(Icons.broken_image, size: 50),
-                                    )
-                                  : const Center(child: Icon(Icons.book, size: 50)),
+                              child: CustomNetworkImage(
+                                imageUrl: book.imageUrl,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                fallbackIcon: Icons.book,
+                                fallbackIconSize: 50,
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(8.0),

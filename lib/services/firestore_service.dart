@@ -25,9 +25,13 @@ class FirestoreService {
   }
 
   // Books
-  Stream<List<BookModel>> getBooks() {
+  Stream<List<BookModel>> getBooks({bool showInactive = false}) {
     return _db.collection('books').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => BookModel.fromMap(doc.data(), doc.id)).toList();
+      final books = snapshot.docs.map((doc) => BookModel.fromMap(doc.data(), doc.id)).toList();
+      if (showInactive) {
+        return books;
+      }
+      return books.where((book) => book.isActive).toList();
     });
   }
 
@@ -37,6 +41,22 @@ class FirestoreService {
 
   Future<void> updateBook(BookModel book) async {
     await _db.collection('books').doc(book.id).update(book.toMap());
+  }
+
+  Future<bool> checkBookHasLoans(String bookId) async {
+    QuerySnapshot snapshot = await _db.collection('loans')
+        .where('bookId', isEqualTo: bookId)
+        .limit(1)
+        .get();
+    return snapshot.docs.isNotEmpty;
+  }
+
+  Future<void> softDeleteBook(String bookId) async {
+    await _db.collection('books').doc(bookId).update({'isActive': false});
+  }
+
+  Future<void> deleteBook(String bookId) async {
+    await _db.collection('books').doc(bookId).delete();
   }
 
   // Loans
