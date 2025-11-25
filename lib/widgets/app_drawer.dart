@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/user_provider.dart';
 import 'custom_network_image.dart';
 
@@ -18,13 +20,36 @@ class AppDrawer extends StatelessWidget {
           UserAccountsDrawerHeader(
             accountName: Text(user?.nome ?? 'Usuário'),
             accountEmail: Text(user?.email ?? ''),
-            currentAccountPicture: CustomNetworkImage(
-              imageUrl: user?.photoUrl,
-              width: 72,
-              height: 72,
-              isCircular: true,
-              fallbackIcon: Icons.person,
-              fallbackIconSize: 40,
+            currentAccountPicture: Stack(
+              children: [
+                CustomNetworkImage(
+                  imageUrl: user?.photoUrl,
+                  width: 72,
+                  height: 72,
+                  isCircular: true,
+                  fallbackIcon: Icons.person,
+                  fallbackIconSize: 40,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: GestureDetector(
+                    onTap: () => _showImageSourceActionSheet(context, userProvider),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           ListTile(
@@ -83,5 +108,59 @@ class AppDrawer extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showImageSourceActionSheet(BuildContext context, UserProvider userProvider) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galeria'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(context, ImageSource.gallery, userProvider);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Câmera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(context, ImageSource.camera, userProvider);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(BuildContext context, ImageSource source, UserProvider userProvider) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(source: source);
+
+      if (pickedFile != null) {
+        File imageFile = File(pickedFile.path);
+        await userProvider.updateProfilePhoto(imageFile);
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Foto de perfil atualizada com sucesso!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao atualizar foto: $e')),
+        );
+      }
+    }
   }
 }

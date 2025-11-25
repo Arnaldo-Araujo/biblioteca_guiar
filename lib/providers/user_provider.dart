@@ -104,4 +104,40 @@ class UserProvider with ChangeNotifier {
     await _firestoreService.updateUser(user);
     notifyListeners();
   }
+
+  Future<void> updateProfilePhoto(File imageFile) async {
+    if (_userModel == null) return;
+    
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      // 1. Upload new photo (overwrites existing due to fixed path)
+      String photoUrl = await _storageService.uploadUserPhoto(imageFile, _userModel!.uid);
+      
+      // 2. Update User Model
+      UserModel updatedUser = UserModel(
+        uid: _userModel!.uid,
+        nome: _userModel!.nome,
+        email: _userModel!.email,
+        cpf: _userModel!.cpf,
+        telefone: _userModel!.telefone,
+        endereco: _userModel!.endereco,
+        isAdmin: _userModel!.isAdmin,
+        isHelper: _userModel!.isHelper,
+        photoUrl: photoUrl,
+      );
+      
+      // 3. Update Firestore
+      await _firestoreService.updateUser(updatedUser);
+      
+      // 4. Update Local State
+      _userModel = updatedUser;
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
