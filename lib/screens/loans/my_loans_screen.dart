@@ -30,7 +30,7 @@ class MyLoansScreen extends StatelessWidget {
           ),
         ),
         body: StreamBuilder<List<LoanModel>>(
-          stream: loanProvider.getUserLoans(uid),
+          stream: loanProvider.getUserLoans(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
