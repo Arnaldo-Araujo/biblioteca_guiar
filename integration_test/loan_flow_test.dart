@@ -36,9 +36,9 @@ void main() {
     await tester.tap(bookFinder);
     await tester.pumpAndSettle();
 
-    // 4. Action: Tap "Solicitar Empréstimo"
-    final loanButtonFinder = find.text('SOLICITAR EMPRÉSTIMO');
-    expect(loanButtonFinder, findsOneWidget, reason: 'Should find loan button');
+    // 4. Action: Tap "Solicitar Reserva"
+    final loanButtonFinder = find.text('SOLICITAR RESERVA');
+    expect(loanButtonFinder, findsOneWidget, reason: 'Should find reservation button');
     
     await tester.tap(loanButtonFinder);
     
@@ -47,14 +47,14 @@ void main() {
 
     // 5. Verification
     // Check for success message
-    final successMessageFinder = find.textContaining('Empréstimo realizado com sucesso');
+    final successMessageFinder = find.textContaining('Reserva realizada');
     final permissionErrorFinder = find.textContaining('Erro de permissão');
 
     if (permissionErrorFinder.evaluate().isNotEmpty) {
       fail('Permission denied error occurred!');
     }
 
-    expect(successMessageFinder, findsOneWidget, reason: 'Should show success message');
+    expect(successMessageFinder, findsOneWidget, reason: 'Should show reservation success message');
     
     // Optional: Check if quantity decreased (requires knowing initial quantity)
     // This is hard to verify without reading the specific widget state before and after

@@ -24,37 +24,74 @@ class ManageLoansScreen extends StatelessWidget {
           }
 
           final loans = snapshot.data ?? [];
-          final activeLoans = loans.where((l) => l.status == 'ativo').toList();
+          final activeAndReservedLoans = loans.where((l) => l.status == 'ativo' || l.status == 'reservado').toList();
 
-          if (activeLoans.isEmpty) {
-            return const Center(child: Text('Nenhum empréstimo ativo.'));
+          if (activeAndReservedLoans.isEmpty) {
+            return const Center(child: Text('Nenhum empréstimo ativo ou reservado.'));
           }
 
           return ListView.builder(
-            itemCount: activeLoans.length,
+            itemCount: activeAndReservedLoans.length,
             itemBuilder: (context, index) {
-              final loan = activeLoans[index];
+              final loan = activeAndReservedLoans[index];
               final dateFormat = DateFormat('dd/MM/yyyy');
+              final isReserved = loan.status == 'reservado';
+
               return Card(
+                color: isReserved ? Colors.amber[50] : null,
                 child: ListTile(
                   title: Text(loan.bookTitle),
-                  subtitle: Text('Usuário: ${loan.userName}\nPrevisto: ${dateFormat.format(loan.dataPrevistaDevolucao)}'),
-                  trailing: ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await loanProvider.returnBook(loan.id, loan.bookId);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Livro devolvido com sucesso!')),
-                          );
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Erro: $e')),
-                        );
-                      }
-                    },
-                    child: const Text('Devolver'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Usuário: ${loan.userName}'),
+                      if (isReserved)
+                        const Text('Status: RESERVADO (Aguardando retirada)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber))
+                      else
+                        Text('Previsto: ${dateFormat.format(loan.dataPrevistaDevolucao)}'),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isReserved)
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          onPressed: () async {
+                            try {
+                              await loanProvider.activateLoan(loan.id, loan.bookId);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Empréstimo efetivado com sucesso!')),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Erro: $e')),
+                              );
+                            }
+                          },
+                          child: const Text('EFETIVAR'),
+                        )
+                      else
+                        ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              await loanProvider.returnBook(loan.id, loan.bookId);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Livro devolvido com sucesso!')),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Erro: $e')),
+                              );
+                            }
+                          },
+                          child: const Text('Devolver'),
+                        ),
+                    ],
                   ),
                 ),
               );

@@ -68,7 +68,7 @@ class BookDetailScreen extends StatelessWidget {
                           onPressed: book.quantidadeDisponivel > 0
                               ? () async {
                                   try {
-                                    // Create Loan
+                                    // Create Reservation
                                     LoanModel loan = LoanModel(
                                       id: '',
                                       userId: user.uid,
@@ -77,14 +77,14 @@ class BookDetailScreen extends StatelessWidget {
                                       userName: user.nome,
                                       dataEmprestimo: DateTime.now(),
                                       dataPrevistaDevolucao: DateTime.now().add(const Duration(days: 7)),
-                                      status: 'ativo',
+                                      status: 'reservado',
                                     );
 
-                                    await loanProvider.loanBook(loan);
+                                    await loanProvider.reserveBook(loan);
                                     
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Empréstimo realizado com sucesso!')),
+                                        const SnackBar(content: Text('Reserva realizada! Aguarde a aprovação na biblioteca.')),
                                       );
                                       Navigator.pop(context);
                                     }
@@ -95,7 +95,7 @@ class BookDetailScreen extends StatelessWidget {
                                   }
                                 }
                               : null,
-                          child: const Text('SOLICITAR EMPRÉSTIMO'),
+                          child: const Text('SOLICITAR RESERVA'),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -106,12 +106,11 @@ class BookDetailScreen extends StatelessWidget {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.person_add),
-                          label: const Text('EMPRESTAR PARA LEITOR'),
+                          label: const Text('RESERVAR PARA LEITOR'),
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                           onPressed: book.quantidadeDisponivel > 0
                               ? () async {
                                   // Show user selection dialog
-                                  // This requires fetching users. We can use UserProvider.
                                   final userProvider = Provider.of<UserProvider>(context, listen: false);
                                   final users = await userProvider.getAllUsers();
                                   
@@ -141,14 +140,14 @@ class BookDetailScreen extends StatelessWidget {
                                                       userName: u.nome,
                                                       dataEmprestimo: DateTime.now(),
                                                       dataPrevistaDevolucao: DateTime.now().add(const Duration(days: 7)),
-                                                      status: 'ativo',
+                                                      status: 'reservado',
                                                     );
 
-                                                    await loanProvider.loanBook(loan);
+                                                    await loanProvider.reserveBook(loan);
                                                     
                                                     if (context.mounted) {
                                                       ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(content: Text('Empréstimo para ${u.nome} realizado!')),
+                                                        SnackBar(content: Text('Reserva para ${u.nome} realizada!')),
                                                       );
                                                       Navigator.pop(context); // Close screen
                                                     }

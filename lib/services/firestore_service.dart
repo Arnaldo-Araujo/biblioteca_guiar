@@ -61,37 +61,52 @@ class FirestoreService {
   }
 
   // Loans
-  Future<void> loanBook(LoanModel loan) async {
+  Future<void> reserveBook(LoanModel loan) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Usuário não autenticado');
 
-      WriteBatch batch = _db.batch();
-
-      DocumentReference bookRef = _db.collection('books').doc(loan.bookId);
+      // Create reservation
+      // Status 'reservado', NO stock update
       DocumentReference loanRef = _db.collection('loans').doc(); // Auto-ID
-
-      // Decrement book quantity atomically
-      // CRITICAL: Only update 'quantidadeDisponivel' to comply with security rules
-      batch.update(bookRef, {'quantidadeDisponivel': FieldValue.increment(-1)});
-
-      // Create loan
-      // Enforce userId and status to match security rules
+      
       final loanData = loan.toMap();
       loanData['userId'] = user.uid; // Must match auth.uid
-      loanData['status'] = 'ativo'; // Must be 'ativo'
+      loanData['status'] = 'reservado'; // Initial status
+      loanData['dataEmprestimo'] = Timestamp.now(); // Reservation date
 
-      batch.set(loanRef, loanData);
-
-      await batch.commit();
+      await loanRef.set(loanData);
     } on FirebaseException catch (e) {
       print('Erro Firebase: ${e.code} - ${e.message}');
       if (e.code == 'permission-denied') {
-        throw Exception('Erro de permissão: Verifique se você já tem empréstimos ou contate o suporte.');
+        throw Exception('Erro de permissão: Verifique se você já tem reservas ativas.');
       }
       rethrow;
     } catch (e) {
-      print('Erro ao realizar empréstimo: $e');
+      print('Erro ao realizar reserva: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> activateLoan(String loanId, String bookId) async {
+    try {
+      WriteBatch batch = _db.batch();
+
+      DocumentReference bookRef = _db.collection('books').doc(bookId);
+      DocumentReference loanRef = _db.collection('loans').doc(loanId);
+
+      // Decrement book quantity atomically
+      batch.update(bookRef, {'quantidadeDisponivel': FieldValue.increment(-1)});
+
+      // Update loan status to active
+      batch.update(loanRef, {
+        'status': 'ativo',
+        'dataEmprestimo': Timestamp.now(), // Update to actual loan date
+      });
+
+      await batch.commit();
+    } catch (e) {
+      print('Erro ao ativar empréstimo: $e');
       rethrow;
     }
   }
@@ -124,6 +139,7 @@ class FirestoreService {
   Stream<List<LoanModel>> getUserLoans(String uid) {
     return _db.collection('loans')
         .where('userId', isEqualTo: uid)
+        .orderBy('dataEmprestimo', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => LoanModel.fromMap(doc.data(), doc.id)).toList());
   }
