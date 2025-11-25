@@ -67,7 +67,16 @@ class MockFirestoreService implements FirestoreService {
   Future<void> updateUser(UserModel user) async {}
 
   @override
-  Stream<List<BookModel>> getBooks() => Stream.value([]);
+  Stream<List<BookModel>> getBooks({bool showInactive = false}) => Stream.value([]);
+
+  @override
+  Future<bool> checkBookHasLoans(String bookId) async => false;
+
+  @override
+  Future<void> softDeleteBook(String bookId) async {}
+
+  @override
+  Future<void> deleteBook(String bookId) async {}
 
   @override
   Future<void> addBook(BookModel book) async {}
@@ -96,7 +105,10 @@ class MockFirestoreService implements FirestoreService {
 
 class MockBookProvider extends ChangeNotifier implements BookProvider {
   @override
-  Stream<List<BookModel>> get booksStream => Stream.value([]);
+  Stream<List<BookModel>> getBooksStream({bool showInactive = false}) => Stream.value([]);
+
+  @override
+  Future<void> deleteBook(String bookId) async {}
   
   @override
   Future<void> addBook(BookModel book, File? imageFile) async {}
