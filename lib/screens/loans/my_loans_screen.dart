@@ -39,12 +39,12 @@ class MyLoansScreen extends StatelessWidget {
             }
 
             final loans = snapshot.data ?? [];
-            final activeLoans = loans.where((l) => l.status == 'ativo').toList();
+            final activeAndReservedLoans = loans.where((l) => l.status == 'ativo' || l.status == 'reservado').toList();
             final historyLoans = loans.where((l) => l.status == 'devolvido').toList();
 
             return TabBarView(
               children: [
-                _buildLoanList(activeLoans, false),
+                _buildLoanList(activeAndReservedLoans, false),
                 _buildLoanList(historyLoans, true),
               ],
             );
@@ -63,23 +63,35 @@ class MyLoansScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         final loan = loans[index];
         final dateFormat = DateFormat('dd/MM/yyyy');
+        final isReserved = loan.status == 'reservado';
+        
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ListTile(
+            leading: isReserved 
+                ? const Icon(Icons.watch_later, color: Colors.amber, size: 40)
+                : (isHistory ? const Icon(Icons.check_circle, color: Colors.green, size: 40) : const Icon(Icons.book, color: Colors.blue, size: 40)),
             title: Text(loan.bookTitle),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Empréstimo: ${dateFormat.format(loan.dataEmprestimo)}'),
+                if (isReserved)
+                  const Text('Status: AGUARDANDO RETIRADA', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold))
+                else
+                  Text('Empréstimo: ${dateFormat.format(loan.dataEmprestimo)}'),
+                
                 Text('Devolução Prevista: ${dateFormat.format(loan.dataPrevistaDevolucao)}'),
+                
                 if (loan.dataDevolucaoReal != null)
                   Text('Devolvido em: ${dateFormat.format(loan.dataDevolucaoReal!)}',
                       style: const TextStyle(color: Colors.green)),
               ],
             ),
-            trailing: isHistory
-                ? const Icon(Icons.check_circle, color: Colors.green)
-                : const Icon(Icons.timer, color: Colors.orange),
+            trailing: isReserved
+                ? null
+                : (isHistory
+                    ? null
+                    : const Icon(Icons.timer, color: Colors.orange)),
           ),
         );
       },

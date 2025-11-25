@@ -76,7 +76,10 @@ class MockFirestoreService implements FirestoreService {
   Future<void> updateBook(BookModel book) async {}
 
   @override
-  Future<void> loanBook(LoanModel loan) async {}
+  Future<void> reserveBook(LoanModel loan) async {}
+
+  @override
+  Future<void> activateLoan(String loanId, String bookId) async {}
 
   @override
   Future<void> returnBook(String loanId, String bookId) async {}
@@ -110,7 +113,10 @@ class MockLoanProvider extends ChangeNotifier implements LoanProvider {
   Stream<List<LoanModel>> getAllLoans() => Stream.value([]);
 
   @override
-  Future<void> loanBook(LoanModel loan) async {}
+  Future<void> reserveBook(LoanModel loan) async {}
+
+  @override
+  Future<void> activateLoan(String loanId, String bookId) async {}
 
   @override
   Future<void> returnBook(String loanId, String bookId) async {}
