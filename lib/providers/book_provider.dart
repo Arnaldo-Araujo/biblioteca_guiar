@@ -14,6 +14,10 @@ class BookProvider with ChangeNotifier {
 
   Stream<List<BookModel>> get booksStream => _firestoreService.getBooks();
 
+  Stream<List<BookModel>> getBooksStream({bool showInactive = false}) {
+    return _firestoreService.getBooks(showInactive: showInactive);
+  }
+
   Future<void> addBook(BookModel book, File? imageFile) async {
     try {
       String imageUrl = book.imageUrl;

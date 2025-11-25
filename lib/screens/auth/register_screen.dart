@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
 
@@ -18,7 +20,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _telefoneController = TextEditingController();
   final _enderecoController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +51,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
           key: _formKey,
           child: Column(
             children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
+                  child: _imageFile == null
+                      ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text('Toque para adicionar foto'),
+              const SizedBox(height: 24),
+
               TextFormField(
                 controller: _nomeController,
                 decoration: const InputDecoration(labelText: 'Nome Completo'),
@@ -71,11 +105,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 obscureText: true,
                 validator: (value) => value!.length < 6 ? 'Mínimo 6 caracteres' : null,
               ),
-              const SizedBox(height: 12),
-              // Hidden or explicit admin switch for now to facilitate testing
-              // Admin selection removed as per requirement
               const SizedBox(height: 24),
-              const SizedBox(height: 24),
+              
               if (userProvider.isLoading)
                 const CircularProgressIndicator()
               else
@@ -99,6 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             _emailController.text.trim(),
                             _passwordController.text.trim(),
                             newUser,
+                            _imageFile,
                           );
                           
                           if (mounted) {
