@@ -100,7 +100,7 @@ class MockFirestoreService implements FirestoreService {
   Future<void> renewLoan(String loanId, DateTime newDate) async {}
 
   @override
-  Stream<List<LoanModel>> getUserLoans(String uid) => Stream.value([]);
+  Stream<List<LoanModel>> getUserLoans() => Stream.value([]);
 
   @override
   Stream<List<LoanModel>> getAllLoans() => Stream.value([]);
@@ -109,6 +109,9 @@ class MockFirestoreService implements FirestoreService {
 class MockBookProvider extends ChangeNotifier implements BookProvider {
   @override
   Stream<List<BookModel>> getBooksStream({bool showInactive = false}) => Stream.value([]);
+  
+  @override
+  Stream<List<BookModel>> get booksStream => Stream.value([]);
 
   @override
   Future<void> deleteBook(String bookId) async {}
@@ -122,7 +125,7 @@ class MockBookProvider extends ChangeNotifier implements BookProvider {
 
 class MockLoanProvider extends ChangeNotifier implements LoanProvider {
   @override
-  Stream<List<LoanModel>> getUserLoans(String uid) => Stream.value([]);
+  Stream<List<LoanModel>> getUserLoans() => Stream.value([]);
 
   @override
   Stream<List<LoanModel>> getAllLoans() => Stream.value([]);
