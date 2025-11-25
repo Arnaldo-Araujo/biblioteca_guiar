@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/custom_network_image.dart';
 import '../book/book_detail_screen.dart';
@@ -19,7 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bookProvider = Provider.of<BookProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
+    final isAdmin = userProvider.userModel?.isAdmin ?? false;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Biblioteca Guiar')),
@@ -44,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             child: StreamBuilder<List<BookModel>>(
-              stream: bookProvider.booksStream,
+              stream: bookProvider.getBooksStream(showInactive: isAdmin),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
