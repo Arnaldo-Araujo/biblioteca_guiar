@@ -61,10 +61,12 @@ class BookDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
                   
-                    if (user != null) ...[
+                    if (user != null && user.isAdmin == false && user.isHelper == false) ...[
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.calendar_today),
+                          label: const Text('RESERVAR LIVRO'),
                           onPressed: book.quantidadeDisponivel > 0
                               ? () async {
                                   try {
@@ -84,7 +86,10 @@ class BookDetailScreen extends StatelessWidget {
                                     
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Reserva realizada! Aguarde a aprovação na biblioteca.')),
+                                        const SnackBar(
+                                          content: Text('Reserva solicitada com sucesso!'),
+                                          backgroundColor: Colors.green,
+                                        ),
                                       );
                                       Navigator.pop(context);
                                     }
@@ -95,7 +100,6 @@ class BookDetailScreen extends StatelessWidget {
                                   }
                                 }
                               : null,
-                          child: const Text('SOLICITAR RESERVA'),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -127,6 +131,12 @@ class BookDetailScreen extends StatelessWidget {
                                             itemBuilder: (context, index) {
                                               final u = users[index];
                                               return ListTile(
+                                                leading: CustomNetworkImage(
+                                                  imageUrl: u.photoUrl,
+                                                  width: 40,
+                                                  height: 40,
+                                                  isCircular: true,
+                                                ),
                                                 title: Text(u.nome),
                                                 subtitle: Text(u.email),
                                                 onTap: () async {
@@ -134,7 +144,7 @@ class BookDetailScreen extends StatelessWidget {
                                                   try {
                                                     LoanModel loan = LoanModel(
                                                       id: '',
-                                                      userId: u.uid, // Loan for THIS user
+                                                      userId: u.uid,
                                                       bookId: book.id,
                                                       bookTitle: book.titulo,
                                                       userName: u.nome,
@@ -149,7 +159,7 @@ class BookDetailScreen extends StatelessWidget {
                                                       ScaffoldMessenger.of(context).showSnackBar(
                                                         SnackBar(content: Text('Reserva para ${u.nome} realizada!')),
                                                       );
-                                                      Navigator.pop(context); // Close screen
+                                                      Navigator.pop(context);
                                                     }
                                                   } catch (e) {
                                                     if (context.mounted) {
