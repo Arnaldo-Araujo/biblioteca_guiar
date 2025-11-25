@@ -4,6 +4,7 @@ import '../../models/book_model.dart';
 import '../../models/loan_model.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/loan_provider.dart';
+import '../../widgets/custom_network_image.dart';
 
 class BookDetailScreen extends StatelessWidget {
   final BookModel book;
@@ -25,9 +26,14 @@ class BookDetailScreen extends StatelessWidget {
             SizedBox(
               height: 300,
               width: double.infinity,
-              child: book.imageUrl.isNotEmpty
-                  ? Image.network(book.imageUrl, fit: BoxFit.cover)
-                  : const Center(child: Icon(Icons.book, size: 100)),
+              child: CustomNetworkImage(
+                imageUrl: book.imageUrl,
+                width: double.infinity,
+                height: 300,
+                fit: BoxFit.cover,
+                fallbackIcon: Icons.book,
+                fallbackIconSize: 100,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),

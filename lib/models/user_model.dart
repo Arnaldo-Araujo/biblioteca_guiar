@@ -7,6 +7,7 @@ class UserModel {
   final String endereco;
   final bool isAdmin;
   final bool isHelper;
+  final String? photoUrl;
 
   UserModel({
     required this.uid,
@@ -17,6 +18,7 @@ class UserModel {
     required this.endereco,
     required this.isAdmin,
     this.isHelper = false,
+    this.photoUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +31,7 @@ class UserModel {
       'endereco': endereco,
       'isAdmin': isAdmin,
       'isHelper': isHelper,
+      'photoUrl': photoUrl,
     };
   }
 
@@ -42,6 +45,7 @@ class UserModel {
       endereco: map['endereco'] ?? '',
       isAdmin: map['isAdmin'] ?? false,
       isHelper: map['isHelper'] ?? false,
+      photoUrl: map['photoUrl'],
     );
   }
 }
