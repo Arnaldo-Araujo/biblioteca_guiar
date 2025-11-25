@@ -11,14 +11,14 @@ class FirestoreService {
   Future<UserModel?> getUser(String uid) async {
     DocumentSnapshot doc = await _db.collection('users').doc(uid).get();
     if (doc.exists) {
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      return UserModel.fromDocument(doc);
     }
     return null;
   }
 
   Future<List<UserModel>> getAllUsers() async {
     QuerySnapshot snapshot = await _db.collection('users').get();
-    return snapshot.docs.map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>)).toList();
+    return snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList();
   }
 
   Future<void> updateUser(UserModel user) async {
