@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../models/book_model.dart';
 import '../models/loan_model.dart';
@@ -61,20 +62,38 @@ class FirestoreService {
 
   // Loans
   Future<void> loanBook(LoanModel loan) async {
-    WriteBatch batch = _db.batch();
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('Usuário não autenticado');
 
-    DocumentReference bookRef = _db.collection('books').doc(loan.bookId);
-    DocumentReference loanRef = _db.collection('loans').doc(); // Auto-ID
+      WriteBatch batch = _db.batch();
 
-    // Decrement book quantity atomically
-    // Using update with FieldValue.increment as requested for strict security rules
-    batch.update(bookRef, {'quantidadeDisponivel': FieldValue.increment(-1)});
+      DocumentReference bookRef = _db.collection('books').doc(loan.bookId);
+      DocumentReference loanRef = _db.collection('loans').doc(); // Auto-ID
 
-    // Create loan
-    // loan.toMap() already contains 'userId'
-    batch.set(loanRef, loan.toMap());
+      // Decrement book quantity atomically
+      // CRITICAL: Only update 'quantidadeDisponivel' to comply with security rules
+      batch.update(bookRef, {'quantidadeDisponivel': FieldValue.increment(-1)});
 
-    await batch.commit();
+      // Create loan
+      // Enforce userId and status to match security rules
+      final loanData = loan.toMap();
+      loanData['userId'] = user.uid; // Must match auth.uid
+      loanData['status'] = 'ativo'; // Must be 'ativo'
+
+      batch.set(loanRef, loanData);
+
+      await batch.commit();
+    } on FirebaseException catch (e) {
+      print('Erro Firebase: ${e.code} - ${e.message}');
+      if (e.code == 'permission-denied') {
+        throw Exception('Erro de permissão: Verifique se você já tem empréstimos ou contate o suporte.');
+      }
+      rethrow;
+    } catch (e) {
+      print('Erro ao realizar empréstimo: $e');
+      rethrow;
+    }
   }
 
   Future<void> returnBook(String loanId, String bookId) async {
