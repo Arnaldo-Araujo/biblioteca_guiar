@@ -75,7 +75,60 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    // Implement forgot password logic if needed
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        final emailController = TextEditingController();
+                        return AlertDialog(
+                          title: const Text('Redefinir Senha'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('Informe seu email para receber o link de redefinição.'),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: emailController,
+                                decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('CANCELAR'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                final email = emailController.text.trim();
+                                if (email.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Informe o email')),
+                                  );
+                                  return;
+                                }
+                                Navigator.pop(context); // Close dialog
+                                try {
+                                  await Provider.of<UserProvider>(context, listen: false).sendPasswordResetEmail(email);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Email de redefinição enviado! Verifique sua caixa de entrada.')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Erro: $e')),
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text('ENVIAR'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   },
                   child: const Text('Esqueci minha senha'),
                 ),
