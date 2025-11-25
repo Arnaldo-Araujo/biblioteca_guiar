@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+    final bookProvider = Provider.of<BookProvider>(context);
     final isAdmin = userProvider.userModel?.isAdmin ?? false;
 
     return Scaffold(
