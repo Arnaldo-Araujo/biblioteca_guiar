@@ -24,7 +24,29 @@ class UserProvider with ChangeNotifier {
     _checkCurrentUser();
   }
 
-  // ... _checkCurrentUser and signIn ...
+  Future<void> _checkCurrentUser() async {
+    authService.authStateChanges.listen((User? user) async {
+      if (user != null) {
+        _userModel = await _firestoreService.getUser(user.uid);
+      } else {
+        _userModel = null;
+      }
+      notifyListeners();
+    });
+  }
+
+  Future<void> signIn(String email, String password) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await authService.signIn(email, password);
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> signUp(String email, String password, UserModel user, File? imageFile) async {
     _isLoading = true;
