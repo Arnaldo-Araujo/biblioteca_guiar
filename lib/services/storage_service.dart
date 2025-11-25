@@ -17,10 +17,18 @@ class StorageService {
 
   Future<String> uploadUserPhoto(File file, String uid) async {
     try {
-      Reference ref = _storage.ref().child('user_profiles/$uid');
+      // Fixed path: user_profiles/{uid}/profile.jpg
+      Reference ref = _storage.ref().child('user_profiles/$uid/profile.jpg');
+      
+      // Upload the file (overwrites existing)
       UploadTask uploadTask = ref.putFile(file);
       TaskSnapshot snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
+      
+      // Get the download URL
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      
+      // Add timestamp to force cache refresh (cache busting)
+      return '$downloadUrl?t=${DateTime.now().millisecondsSinceEpoch}';
     } catch (e) {
       rethrow;
     }
