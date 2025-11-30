@@ -34,9 +34,7 @@ android {
         multiDexEnabled = true
     }
 
-    dependencies {
-        implementation("androidx.multidex:multidex:2.0.1")
-    }
+
 
     buildTypes {
         release {
@@ -45,6 +43,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+dependencies {
+    implementation("androidx.multidex:multidex:2.0.1")
 }
 
 flutter {
