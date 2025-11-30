@@ -13,6 +13,8 @@ import 'screens/book/add_edit_book_screen.dart';
 import 'screens/loans/my_loans_screen.dart';
 import 'screens/loans/manage_loans_screen.dart';
 import 'screens/admin/users_list_screen.dart';
+import 'screens/profile/edit_profile_screen.dart';
+import 'screens/profile/change_password_screen.dart';
 import 'services/notification_service.dart';
 
 @pragma('vm:entry-point')
@@ -66,6 +68,8 @@ class MyApp extends StatelessWidget {
           '/my_loans': (context) => const MyLoansScreen(),
           '/manage_loans': (context) => const ManageLoansScreen(),
           '/users': (context) => const UsersListScreen(),
+          '/edit_profile': (context) => const EditProfileScreen(),
+          '/change_password': (context) => const ChangePasswordScreen(),
         },
       ),
     );
