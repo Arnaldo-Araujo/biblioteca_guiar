@@ -35,11 +35,38 @@ class UserProvider with ChangeNotifier {
     });
   }
 
+  String _tratarErroAuth(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'E-mail não encontrado. Verifique se digitou corretamente ou crie uma conta.';
+      case 'wrong-password':
+        return 'A senha está incorreta. Tente novamente.';
+      case 'invalid-email':
+        return 'O formato do e-mail digitado é inválido.';
+      case 'email-already-in-use':
+        return 'Este e-mail já está cadastrado em outra conta.';
+      case 'weak-password':
+        return 'A senha é muito fraca. Escolha uma senha com pelo menos 6 caracteres.';
+      case 'operation-not-allowed':
+        return 'O login com e-mail e senha não está habilitado.';
+      case 'user-disabled':
+        return 'Este usuário foi desativado. Entre em contato com a administração.';
+      case 'too-many-requests':
+        return 'Muitas tentativas falhas. Aguarde alguns minutos para tentar novamente.';
+      case 'network-request-failed':
+        return 'Parece que você está sem internet. Verifique sua conexão.';
+      default:
+        return 'Ocorreu um erro inesperado. Tente novamente mais tarde.';
+    }
+  }
+
   Future<void> signIn(String email, String password) async {
     _isLoading = true;
     notifyListeners();
     try {
       await authService.signIn(email, password);
+    } on FirebaseAuthException catch (e) {
+      throw _tratarErroAuth(e);
     } catch (e) {
       rethrow;
     } finally {
@@ -78,6 +105,8 @@ class UserProvider with ChangeNotifier {
         // 5. Update Local State
         _userModel = updatedUser;
       }
+    } on FirebaseAuthException catch (e) {
+      throw _tratarErroAuth(e);
     } catch (e) {
       rethrow;
     } finally {
