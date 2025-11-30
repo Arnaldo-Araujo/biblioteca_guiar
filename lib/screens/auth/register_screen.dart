@@ -24,9 +24,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage() async {
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galeria'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImageFromSource(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Câmera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImageFromSource(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImageFromSource(ImageSource source) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        imageQuality: 50,
+        maxWidth: 800,
+      );
       if (pickedFile != null) {
         setState(() {
           _imageFile = File(pickedFile.path);
@@ -52,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             children: [
               GestureDetector(
-                onTap: _pickImage,
+                onTap: _showImageSourceActionSheet,
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[300],

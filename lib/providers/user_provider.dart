@@ -108,9 +108,6 @@ class UserProvider with ChangeNotifier {
   Future<void> updateProfilePhoto(File imageFile) async {
     if (_userModel == null) return;
     
-    _isLoading = true;
-    notifyListeners();
-    
     try {
       // 1. Upload new photo (overwrites existing due to fixed path)
       String photoUrl = await _storageService.uploadUserPhoto(imageFile, _userModel!.uid);
@@ -133,11 +130,9 @@ class UserProvider with ChangeNotifier {
       
       // 4. Update Local State
       _userModel = updatedUser;
+      notifyListeners();
     } catch (e) {
       rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 }

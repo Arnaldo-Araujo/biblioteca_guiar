@@ -63,9 +63,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                           // Navigation is handled by AuthWrapper
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Erro ao logar: $e')),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erro ao logar: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
                       }
                     },
@@ -112,13 +117,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                   await Provider.of<UserProvider>(context, listen: false).sendPasswordResetEmail(email);
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Email de redefinição enviado! Verifique sua caixa de entrada.')),
+                                      const SnackBar(
+                                        content: Text('E-mail enviado! Verifique sua caixa de entrada e a pasta de SPAM/Lixo Eletrônico.'),
+                                        backgroundColor: Colors.green,
+                                      ),
                                     );
                                   }
                                 } catch (e) {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Erro: $e')),
+                                      SnackBar(
+                                        content: Text('Erro: $e'),
+                                        backgroundColor: Colors.red,
+                                      ),
                                     );
                                   }
                                 }
