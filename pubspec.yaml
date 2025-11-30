@@ -23,13 +23,17 @@ dependencies:
   google_mlkit_text_recognition: ^0.13.0
   firebase_messaging:
   flutter_local_notifications:
-  fl_chart:
+  fl_chart: ^0.68.0 # Ou a versão que você usa
+  vector_math: ^2.1.5 # <--- ADICIONE ISSO AQUI! 👈
+
+dependency_overrides:
+  vector_math: ^2.1.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  integration_test:
-    sdk: flutter
+  #integration_test:
+  #  sdk: flutter
 
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1

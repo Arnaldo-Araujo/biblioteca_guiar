@@ -1,0 +1,32 @@
+Analyzing biblioteca_guiar...                                   
+
+warning - Unused import: 'package:firebase_auth/firebase_auth.dart' - integration_test\loan_flow_test.dart:5:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\helpers\ocr_helper.dart:23:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\main.dart:25:3 - avoid_print
+   info - Don't invoke 'print' in production code - lib\providers\dashboard_provider.dart:46:7 - avoid_print
+warning - Duplicate import - lib\providers\user_provider.dart:7:8 - duplicate_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\dashboard_screen.dart:93:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\admin\dashboard_screen.dart:95:41 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\screens\auth\register_screen.dart:70:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\auth\register_screen.dart:171:43 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\auth\register_screen.dart:174:48 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\book\add_edit_book_screen.dart:92:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\book\book_detail_screen.dart:97:58 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\services\firestore_service.dart:80:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\firestore_service.dart:86:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\firestore_service.dart:113:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:23:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:25:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:54:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:82:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\notification_service.dart:89:5 - avoid_print
+warning - Dead code - lib\widgets\dashboard\loan_status_pie_chart.dart:65:36 - dead_code
+warning - Dead code - lib\widgets\dashboard\loan_status_pie_chart.dart:66:34 - dead_code
+  error - Missing concrete implementation of 'class AuthService.changePassword' - test\widget_tests.dart:21:7 - non_abstract_class_inherits_abstract_member
+  error - Missing concrete implementations of 'class FirestoreService.getAllUsersStream' and 'class FirestoreService.getLoansByUserId' - test\widget_tests.dart:50:7 - non_abstract_class_inherits_abstract_member
+  error - 'MockFirestoreService.activateLoan' ('Future<void> Function(String, String)') isn't a valid override of 'FirestoreService.activateLoan' ('Future<void> Function(String, String, int)') - test\widget_tests.dart:94:16 - invalid_override
+  error - 'MockFirestoreService.renewLoan' ('Future<void> Function(String, DateTime)') isn't a valid override of 'FirestoreService.renewLoan' ('Future<void> Function(String, int)') - test\widget_tests.dart:100:16 - invalid_override
+  error - Missing concrete implementations of 'class LoanProvider with ChangeNotifier.clearData' and 'class LoanProvider with ChangeNotifier.fetchUserLoans' - test\widget_tests.dart:126:7 - non_abstract_class_inherits_abstract_member
+  error - 'MockLoanProvider.activateLoan' ('Future<void> Function(String, String)') isn't a valid override of 'LoanProvider.activateLoan' ('Future<void> Function(String, String, int)') - test\widget_tests.dart:137:16 - invalid_override
+  error - 'MockLoanProvider.renewLoan' ('Future<void> Function(String, DateTime)') isn't a valid override of 'LoanProvider.renewLoan' ('Future<void> Function(String, int)') - test\widget_tests.dart:143:16 - invalid_override
+
