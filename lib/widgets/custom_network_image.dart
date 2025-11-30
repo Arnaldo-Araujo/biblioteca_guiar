@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomNetworkImage extends StatelessWidget {
   final String? imageUrl;
@@ -26,59 +26,32 @@ class CustomNetworkImage extends StatelessWidget {
       return _buildFallback();
     }
 
+    Widget imageWidget = CachedNetworkImage(
+      imageUrl: imageUrl!,
+      width: width,
+      height: height,
+      fit: fit,
+      placeholder: (context, url) => Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      errorWidget: (context, url, error) => _buildFallback(),
+    );
+
     if (isCircular) {
       return CircleAvatar(
         radius: (width ?? height ?? 50) / 2,
         backgroundColor: Colors.grey[300],
         child: ClipOval(
-          child: Image.network(
-            imageUrl!,
-            width: width,
-            height: height,
-            fit: fit,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(
-                fallbackIcon,
-                size: fallbackIconSize,
-                color: Colors.grey[600],
-              );
-            },
-          ),
+          child: imageWidget,
         ),
       );
     }
 
-    return Image.network(
-      imageUrl!,
-      width: width,
-      height: height,
-      fit: fit,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Center(
-          child: CircularProgressIndicator(
-            value: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!
-                : null,
-          ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return _buildFallback();
-      },
-    );
+    return imageWidget;
   }
 
   Widget _buildFallback() {

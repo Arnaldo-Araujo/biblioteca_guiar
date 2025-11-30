@@ -159,4 +159,17 @@ class FirestoreService {
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => LoanModel.fromMap(doc.data(), doc.id)).toList());
   }
+  Stream<List<UserModel>> getAllUsersStream() {
+    return _db.collection('users').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList();
+    });
+  }
+
+  Stream<List<LoanModel>> getLoansByUserId(String uid) {
+    return _db.collection('loans')
+        .where('userId', isEqualTo: uid)
+        .orderBy('dataEmprestimo', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => LoanModel.fromMap(doc.data(), doc.id)).toList());
+  }
 }
