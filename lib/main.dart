@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'providers/user_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/loan_provider.dart';
+import 'providers/dashboard_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -13,6 +14,7 @@ import 'screens/book/add_edit_book_screen.dart';
 import 'screens/loans/my_loans_screen.dart';
 import 'screens/loans/manage_loans_screen.dart';
 import 'screens/admin/users_list_screen.dart';
+import 'screens/admin/dashboard_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
 import 'screens/profile/change_password_screen.dart';
 import 'services/notification_service.dart';
@@ -45,6 +47,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => BookProvider()),
         ChangeNotifierProvider(create: (_) => LoanProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -68,6 +71,7 @@ class MyApp extends StatelessWidget {
           '/my_loans': (context) => const MyLoansScreen(),
           '/manage_loans': (context) => const ManageLoansScreen(),
           '/users': (context) => const UsersListScreen(),
+          '/dashboard': (context) => const DashboardScreen(),
           '/edit_profile': (context) => const EditProfileScreen(),
           '/change_password': (context) => const ChangePasswordScreen(),
         },
