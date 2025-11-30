@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
+import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
+import '../services/notification_service.dart';
 
 class UserProvider with ChangeNotifier {
   final AuthService authService;
@@ -65,6 +67,8 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
     try {
       await authService.signIn(email, password);
+      // Update FCM Token on Login
+      await NotificationService().getToken();
     } on FirebaseAuthException catch (e) {
       throw _tratarErroAuth(e);
     } catch (e) {
