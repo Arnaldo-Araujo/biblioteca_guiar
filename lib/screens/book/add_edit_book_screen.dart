@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
 import '../../providers/book_provider.dart';
 import '../../widgets/custom_network_image.dart';
+import '../../helpers/ocr_helper.dart';
 
 class AddEditBookScreen extends StatefulWidget {
   const AddEditBookScreen({super.key});
@@ -211,11 +212,36 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
                   IconButton(
                     icon: const Icon(Icons.document_scanner),
                     tooltip: 'Escanear Texto',
-                    onPressed: () {
-                      // Placeholder for OCR function
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Funcionalidade de OCR em desenvolvimento')),
-                      );
+                    onPressed: () async {
+                      try {
+                        final text = await OcrHelper.scanTextFromCamera();
+                        if (text != null && text.isNotEmpty) {
+                          // Clean up text: replace multiple newlines with space, etc.
+                          final cleanedText = text.replaceAll('\n', ' ').trim();
+                          
+                          setState(() {
+                            _sinopseController.text = cleanedText;
+                          });
+                          
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Texto escaneado com sucesso!')),
+                            );
+                          }
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Não foi possível ler o texto. Tente melhorar a iluminação.')),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erro no OCR: $e')),
+                          );
+                        }
+                      }
                     },
                   ),
                 ],
