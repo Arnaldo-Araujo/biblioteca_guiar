@@ -55,6 +55,26 @@ class AuthService {
     }
   }
 
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    User? user = _auth.currentUser;
+    if (user == null) throw Exception('Usuário não autenticado');
+
+    try {
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        throw Exception('A senha atual informada está incorreta.');
+      }
+      rethrow;
+    }
+  }
+
   Future<void> signOut() async {
     await _auth.signOut();
   }

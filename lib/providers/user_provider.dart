@@ -169,6 +169,51 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateUserProfile(UserModel updatedUser, File? imageFile) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      String photoUrl = updatedUser.photoUrl;
+      
+      if (imageFile != null) {
+        photoUrl = await _storageService.uploadUserPhoto(imageFile, updatedUser.uid);
+      }
+
+      final userToSave = UserModel(
+        uid: updatedUser.uid,
+        nome: updatedUser.nome,
+        email: updatedUser.email,
+        cpf: updatedUser.cpf,
+        telefone: updatedUser.telefone,
+        endereco: updatedUser.endereco,
+        isAdmin: updatedUser.isAdmin,
+        isHelper: updatedUser.isHelper,
+        photoUrl: photoUrl,
+      );
+
+      await _firestoreService.updateUser(userToSave);
+      _userModel = userToSave;
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await authService.changePassword(currentPassword, newPassword);
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void clearData() {
     _userModel = null;
     notifyListeners();
