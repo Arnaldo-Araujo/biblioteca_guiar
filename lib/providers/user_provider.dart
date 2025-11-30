@@ -135,4 +135,9 @@ class UserProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  void clearData() {
+    _userModel = null;
+    notifyListeners();
+  }
 }

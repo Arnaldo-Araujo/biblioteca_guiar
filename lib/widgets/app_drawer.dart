@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/user_provider.dart';
+import '../providers/loan_provider.dart';
 import 'custom_network_image.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -100,9 +101,18 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.exit_to_app),
             title: const Text('Sair'),
-            onTap: () {
-              userProvider.signOut();
-              Navigator.pushReplacementNamed(context, '/login');
+            onTap: () async {
+              // 1. Clear Data from Providers
+              Provider.of<UserProvider>(context, listen: false).clearData();
+              Provider.of<LoanProvider>(context, listen: false).clearData();
+              
+              // 2. Sign Out
+              await userProvider.signOut();
+              
+              // 3. Navigate to Login
+              if (context.mounted) {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
             },
           ),
         ],
