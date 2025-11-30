@@ -21,6 +21,8 @@ dependencies:
   intl: ^0.20.2
   cached_network_image: ^3.4.1
   google_mlkit_text_recognition: ^0.14.0
+  firebase_messaging: ^15.2.0
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:
