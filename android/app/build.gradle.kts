@@ -14,6 +14,8 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
+        // 👇 Mude para ficar exatamente assim:
+    isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -46,6 +48,8 @@ android {
 }
 
 dependencies {
+    // 👇 Mude para este formato:
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("androidx.multidex:multidex:2.0.1")
 }
 
