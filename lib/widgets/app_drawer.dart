@@ -143,7 +143,11 @@ class AppDrawer extends StatelessWidget {
   Future<void> _pickImage(BuildContext context, ImageSource source, UserProvider userProvider) async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(source: source);
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        imageQuality: 50,
+        maxWidth: 800,
+      );
 
       if (pickedFile != null) {
         File imageFile = File(pickedFile.path);
