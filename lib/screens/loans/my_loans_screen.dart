@@ -4,115 +4,198 @@ import 'package:intl/intl.dart';
 import '../../models/loan_model.dart';
 import '../../providers/loan_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../widgets/custom_network_image.dart';
 
 class MyLoansScreen extends StatelessWidget {
   const MyLoansScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final loanProvider = Provider.of<LoanProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final uid = userProvider.userModel?.uid;
 
-    if (uid == null) return const Scaffold(body: Center(child: Text('Erro: Usuário não logado')));
+    if (uid == null) {
+      return const Scaffold(
+        body: Center(child: Text('Erro: Usuário não identificado')),
+      );
+    }
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Meus Empréstimos'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Com você'),
-              Tab(text: 'Histórico'),
-            ],
-          ),
-        ),
-        body: StreamBuilder<List<LoanModel>>(
-          stream: loanProvider.getUserLoans(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Erro: ${snapshot.error}'));
-            }
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Minha Estante'),
+      ),
+      body: Consumer<LoanProvider>(
+        builder: (context, loanProvider, child) {
+          return StreamBuilder<List<LoanModel>>(
+            stream: loanProvider.fetchUserLoans(uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            final loans = snapshot.data ?? [];
-            final activeAndReservedLoans = loans.where((l) => l.status == 'ativo' || l.status == 'reservado').toList();
-            final historyLoans = loans.where((l) => l.status == 'devolvido').toList();
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text('Erro ao carregar empréstimos: ${snapshot.error}'),
+                    ],
+                  ),
+                );
+              }
 
-            return TabBarView(
-              children: [
-                _buildLoanList(activeAndReservedLoans, false),
-                _buildLoanList(historyLoans, true),
-              ],
-            );
-          },
-        ),
+              final loans = snapshot.data ?? [];
+
+              if (loans.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.library_books_outlined, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Você ainda não tem empréstimos.',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: loans.length,
+                itemBuilder: (context, index) {
+                  final loan = loans[index];
+                  return _buildLoanCard(loan);
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }
 
-  Widget _buildLoanList(List<LoanModel> loans, bool isHistory) {
-    if (loans.isEmpty) {
-      return const Center(child: Text('Nenhum empréstimo encontrado.'));
+  Widget _buildLoanCard(LoanModel loan) {
+    final now = DateTime.now();
+    final dateFormat = DateFormat('dd/MM/yyyy');
+    
+    Color borderColor;
+    Color statusColor;
+    String statusText;
+    IconData statusIcon;
+
+    // Lógica de Status (Semáforo)
+    if (loan.status == 'reservado') {
+      // 🟡 AMARELO (Aguardando)
+      borderColor = Colors.amber;
+      statusColor = Colors.amber[700]!;
+      statusText = "Aguardando retirada na biblioteca";
+      statusIcon = Icons.hourglass_empty;
+    } else if (loan.status == 'devolvido') {
+      // ⚫ CINZA (Histórico)
+      borderColor = Colors.grey;
+      statusColor = Colors.grey[700]!;
+      statusText = "Devolvido em ${loan.dataDevolucaoReal != null ? dateFormat.format(loan.dataDevolucaoReal!) : '-'}";
+      statusIcon = Icons.check_circle_outline;
+    } else if (loan.status == 'ativo') {
+      // Verificar atraso
+      // Compara apenas as datas, ignorando hora se necessário, ou comparação direta
+      if (now.isAfter(loan.dataPrevistaDevolucao)) {
+        // 🔴 VERMELHO (ATRASADO)
+        borderColor = Colors.red;
+        statusColor = Colors.red;
+        statusText = "ATRASADO! Devolva imediatamente";
+        statusIcon = Icons.warning_amber_rounded;
+      } else {
+        // 🟢 VERDE (Em dia)
+        borderColor = Colors.green;
+        statusColor = Colors.green;
+        statusText = "Devolver até ${dateFormat.format(loan.dataPrevistaDevolucao)}";
+        statusIcon = Icons.event_available;
+      }
+    } else {
+      // Fallback
+      borderColor = Colors.grey;
+      statusColor = Colors.grey;
+      statusText = loan.status;
+      statusIcon = Icons.info_outline;
     }
-    return ListView.builder(
-      itemCount: loans.length,
-      itemBuilder: (context, index) {
-        final loan = loans[index];
-        final dateFormat = DateFormat('dd/MM/yyyy');
-        final isReserved = loan.status == 'reservado';
-        
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListTile(
-            leading: CustomNetworkImage(
-                imageUrl: null, // We don't have book image in LoanModel yet, use fallback
-                width: 50,
-                height: 70,
-                fit: BoxFit.cover,
-                fallbackIcon: Icons.book,
+
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: borderColor, width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Título do Livro
+            Text(
+              loan.bookTitle,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-            title: Text(loan.bookTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            const SizedBox(height: 12),
+            
+            // Status Chip/Row
+            Row(
               children: [
-                const SizedBox(height: 8),
-                if (isReserved)
-                  const Chip(
-                    label: Text('⏳ Aguardando Retirada', style: TextStyle(color: Colors.black)),
-                    backgroundColor: Colors.amberAccent,
-                    padding: EdgeInsets.zero,
-                  )
-                else if (isHistory)
-                  const Chip(
-                    label: Text('✅ Devolvido', style: TextStyle(color: Colors.white)),
-                    backgroundColor: Colors.grey,
-                    padding: EdgeInsets.zero,
-                  )
-                else
-                  const Chip(
-                    label: Text('📖 Com você', style: TextStyle(color: Colors.white)),
-                    backgroundColor: Colors.green,
-                    padding: EdgeInsets.zero,
+                Icon(statusIcon, color: statusColor, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    statusText,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
-                
-                const SizedBox(height: 4),
-                if (!isReserved) ...[
-                  Text('Empréstimo: ${dateFormat.format(loan.dataEmprestimo)}'),
-                  Text('Devolução: ${dateFormat.format(loan.dataPrevistaDevolucao)}'),
-                ],
-                if (isHistory && loan.dataDevolucaoReal != null)
-                  Text('Devolvido em: ${dateFormat.format(loan.dataDevolucaoReal!)}'),
+                ),
               ],
             ),
-            isThreeLine: true,
-          ),
-        );
-      },
+            
+            const Divider(height: 24),
+            
+            // Datas Relevantes
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Data Empréstimo', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(
+                      dateFormat.format(loan.dataEmprestimo),
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+                if (loan.status == 'ativo' || loan.status == 'reservado')
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text('Previsão Devolução', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text(
+                        dateFormat.format(loan.dataPrevistaDevolucao),
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

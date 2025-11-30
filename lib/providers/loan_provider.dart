@@ -8,6 +8,10 @@ class LoanProvider with ChangeNotifier {
   LoanProvider({FirestoreService? firestoreService})
       : _firestoreService = firestoreService ?? FirestoreService();
 
+  Stream<List<LoanModel>> fetchUserLoans(String uid) {
+    return _firestoreService.getUserLoans();
+  }
+
   Stream<List<LoanModel>> getUserLoans() {
     return _firestoreService.getUserLoans();
   }
