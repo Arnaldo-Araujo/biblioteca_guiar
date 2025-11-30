@@ -173,7 +173,7 @@ class UserProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      String photoUrl = updatedUser.photoUrl;
+      String photoUrl = updatedUser.photoUrl ?? '';
       
       if (imageFile != null) {
         photoUrl = await _storageService.uploadUserPhoto(imageFile, updatedUser.uid);
