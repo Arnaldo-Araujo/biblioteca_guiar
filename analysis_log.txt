@@ -1,6 +1,8 @@
 Analyzing biblioteca_guiar...                                   
 
-warning - Unused import: 'package:firebase_auth/firebase_auth.dart' - integration_test\loan_flow_test.dart:5:8 - unused_import
+   info - The imported package 'integration_test' isn't a dependency of the importing package - integration_test\loan_flow_test.dart:3:8 - depend_on_referenced_packages
+  error - Target of URI doesn't exist: 'package:integration_test/integration_test.dart' - integration_test\loan_flow_test.dart:3:8 - uri_does_not_exist
+  error - Undefined name 'IntegrationTestWidgetsFlutterBinding' - integration_test\loan_flow_test.dart:8:3 - undefined_identifier
    info - Don't invoke 'print' in production code - lib\helpers\ocr_helper.dart:23:7 - avoid_print
    info - Don't invoke 'print' in production code - lib\main.dart:25:3 - avoid_print
    info - Don't invoke 'print' in production code - lib\providers\dashboard_provider.dart:46:7 - avoid_print
@@ -20,6 +22,8 @@ warning - Duplicate import - lib\providers\user_provider.dart:7:8 - duplicate_im
    info - Don't invoke 'print' in production code - lib\services\notification_service.dart:54:9 - avoid_print
    info - Don't invoke 'print' in production code - lib\services\notification_service.dart:82:7 - avoid_print
    info - Don't invoke 'print' in production code - lib\services\notification_service.dart:89:5 - avoid_print
+  error - The named parameter 'axisSide' is required, but there's no corresponding argument - lib\widgets\dashboard\category_bar_chart.dart:64:26 - missing_required_argument
+  error - The named parameter 'meta' isn't defined - lib\widgets\dashboard\category_bar_chart.dart:65:21 - undefined_named_parameter
 warning - Dead code - lib\widgets\dashboard\loan_status_pie_chart.dart:65:36 - dead_code
 warning - Dead code - lib\widgets\dashboard\loan_status_pie_chart.dart:66:34 - dead_code
   error - Missing concrete implementation of 'class AuthService.changePassword' - test\widget_tests.dart:21:7 - non_abstract_class_inherits_abstract_member

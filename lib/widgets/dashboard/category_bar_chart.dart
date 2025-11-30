@@ -62,7 +62,7 @@ class CategoryBarChart extends StatelessWidget {
                   if (text.length > 4) text = '${text.substring(0, 3)}.';
                   
                   return SideTitleWidget(
-                    meta: meta,
+                    axisSide: meta.axisSide,
                     space: 4,
                     child: Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                   );
