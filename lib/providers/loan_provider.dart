@@ -35,4 +35,8 @@ class LoanProvider with ChangeNotifier {
   Future<void> renewLoan(String loanId, int days) async {
     await _firestoreService.renewLoan(loanId, days);
   }
+  void clearData() {
+    // Reset any local state if added in future
+    notifyListeners();
+  }
 }
