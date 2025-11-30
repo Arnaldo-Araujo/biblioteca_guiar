@@ -24,15 +24,15 @@ class LoanProvider with ChangeNotifier {
     await _firestoreService.reserveBook(loan);
   }
 
-  Future<void> activateLoan(String loanId, String bookId) async {
-    await _firestoreService.activateLoan(loanId, bookId);
+  Future<void> activateLoan(String loanId, String bookId, int days) async {
+    await _firestoreService.activateLoan(loanId, bookId, days);
   }
 
   Future<void> returnBook(String loanId, String bookId) async {
     await _firestoreService.returnBook(loanId, bookId);
   }
 
-  Future<void> renewLoan(String loanId, DateTime newDate) async {
-    await _firestoreService.renewLoan(loanId, newDate);
+  Future<void> renewLoan(String loanId, int days) async {
+    await _firestoreService.renewLoan(loanId, days);
   }
 }

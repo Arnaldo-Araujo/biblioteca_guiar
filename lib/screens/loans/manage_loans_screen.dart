@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/loan_model.dart';
 import '../../providers/loan_provider.dart';
+import '../../widgets/loan_duration_dialog.dart';
 
 class ManageLoansScreen extends StatelessWidget {
   const ManageLoansScreen({super.key});
@@ -58,22 +59,65 @@ class ManageLoansScreen extends StatelessWidget {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                           onPressed: () async {
-                            try {
-                              await loanProvider.activateLoan(loan.id, loan.bookId);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Empréstimo efetivado com sucesso!')),
-                                );
+                            final days = await showDialog<int>(
+                              context: context,
+                              builder: (context) => const LoanDurationDialog(
+                                title: 'Ativar Empréstimo',
+                                confirmText: 'ATIVAR',
+                              ),
+                            );
+
+                            if (days != null) {
+                              try {
+                                await loanProvider.activateLoan(loan.id, loan.bookId, days);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Empréstimo efetivado com sucesso!')),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Erro: $e')),
+                                  );
+                                }
                               }
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Erro: $e')),
-                              );
                             }
                           },
                           child: const Text('EFETIVAR'),
                         )
-                      else
+                      else ...[
+                        IconButton(
+                          icon: const Icon(Icons.autorenew, color: Colors.blue),
+                          tooltip: 'Renovar',
+                          onPressed: () async {
+                            final days = await showDialog<int>(
+                              context: context,
+                              builder: (context) => const LoanDurationDialog(
+                                title: 'Renovar Empréstimo',
+                                confirmText: 'RENOVAR',
+                              ),
+                            );
+
+                            if (days != null) {
+                              try {
+                                await loanProvider.renewLoan(loan.id, days);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Empréstimo renovado com sucesso!')),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Erro: $e')),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () async {
                             try {
@@ -84,13 +128,16 @@ class ManageLoansScreen extends StatelessWidget {
                                 );
                               }
                             } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Erro: $e')),
-                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erro: $e')),
+                                );
+                              }
                             }
                           },
                           child: const Text('Devolver'),
                         ),
+                      ],
                     ],
                   ),
                 ),

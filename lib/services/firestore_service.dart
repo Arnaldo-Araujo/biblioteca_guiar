@@ -88,7 +88,7 @@ class FirestoreService {
     }
   }
 
-  Future<void> activateLoan(String loanId, String bookId) async {
+  Future<void> activateLoan(String loanId, String bookId, int days) async {
     try {
       WriteBatch batch = _db.batch();
 
@@ -98,10 +98,14 @@ class FirestoreService {
       // Decrement book quantity atomically
       batch.update(bookRef, {'quantidadeDisponivel': FieldValue.increment(-1)});
 
+      // Calculate return date
+      final returnDate = DateTime.now().add(Duration(days: days));
+
       // Update loan status to active
       batch.update(loanRef, {
         'status': 'ativo',
         'dataEmprestimo': Timestamp.now(), // Update to actual loan date
+        'dataPrevistaDevolucao': Timestamp.fromDate(returnDate),
       });
 
       await batch.commit();
@@ -130,9 +134,11 @@ class FirestoreService {
     });
   }
 
-  Future<void> renewLoan(String loanId, DateTime newDate) async {
+  Future<void> renewLoan(String loanId, int days) async {
+    final newDate = DateTime.now().add(Duration(days: days));
     await _db.collection('loans').doc(loanId).update({
       'dataPrevistaDevolucao': Timestamp.fromDate(newDate),
+      'renovationsCount': FieldValue.increment(1),
     });
   }
 
