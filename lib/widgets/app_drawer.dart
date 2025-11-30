@@ -75,6 +75,14 @@ class AppDrawer extends StatelessWidget {
             ),
             if (user?.isAdmin == true)
               ListTile(
+                leading: const Icon(Icons.dashboard),
+                title: const Text('Dashboard'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/dashboard');
+                },
+              ),
+            if (user?.isAdmin == true)
+              ListTile(
                 leading: const Icon(Icons.people),
                 title: const Text('Usuários'),
                 onTap: () {
@@ -97,6 +105,21 @@ class AppDrawer extends StatelessWidget {
                 },
               ),
           ],
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('Editar Perfil'),
+            onTap: () {
+              Navigator.pushNamed(context, '/edit_profile');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.lock),
+            title: const Text('Alterar Senha'),
+            onTap: () {
+              Navigator.pushNamed(context, '/change_password');
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.exit_to_app),
