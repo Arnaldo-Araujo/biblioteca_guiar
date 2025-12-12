@@ -29,11 +29,32 @@ class UserProvider with ChangeNotifier {
   Future<void> _checkCurrentUser() async {
     authService.authStateChanges.listen((User? user) async {
       if (user != null) {
-        _userModel = await _firestoreService.getUser(user.uid);
+        final currentUid = user.uid;
+        
+        try {
+          // Busca dados do Firestore sem travar o listener se falhar
+          final userData = await _firestoreService.getUser(currentUid);
+          
+          // VERIFICAÇÃO DE SEGURANÇA (Race Condition Check)
+          // Só atualiza o model se o usuário logado AINDA for o mesmo que pediu os dados
+          // Aqui usamos FirebaseAuth.instance.currentUser ou a instância exposta pelo AuthService se acessível.
+          // Como AuthService é um wrapper, e provavelmente não expõe o currentUser diretamente como propriedade pública mutável além do stream,
+          // o mais seguro é verificar se 'user.uid' ainda bate com o uid do evento, mas o evento 'user' é snapshot.
+          // Precisamos saber se o "estado atual do auth" mudou.
+          // O ideal é checar FirebaseAuth.instance.currentUser.uid, mas vamos usar o user.uid capturado versus o que o authService reportaria agora.
+          // Se o authService expõe currentUser, usamos ele. Se não, usamos FirebaseAuth.instance.
+          
+          if (FirebaseAuth.instance.currentUser?.uid == currentUid) {
+            _userModel = userData;
+            notifyListeners();
+          }
+        } catch (e) {
+             print("Erro ao buscar dados do usuário: $e");
+        }
       } else {
         _userModel = null;
+        notifyListeners();
       }
-      notifyListeners();
     });
   }
 
