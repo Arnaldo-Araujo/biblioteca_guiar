@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- FUNÇÕES AUXILIARES ---
+
+    // Verifica se o usuário está autenticado no Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Verifica se o usuário logado é o "dono" do ID fornecido
+    // Útil para garantir que o usuário só mexa nos próprios dados
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Verifica se o usuário logado possui a flag 'isAdmin' como true no Firestore
+    // Usa 'exists' para evitar erros caso o documento do usuário ainda não exista
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // --- REGRAS POR COLEÇÃO ---
+
+    // 1. COLEÇÃO USERS
+    // Solução para o erro 'permission-denied' no cadastro:
+    // Permitimos a escrita se o UID do auth for igual ao ID do documento (Auto-cadastro) OU se for Admin.
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // 2. COLEÇÃO BOOKS
+    // Leitura liberada para autenticados. Escrita restrita a Admins.
+    match /books/{bookId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 3. COLEÇÃO LOANS (Empréstimos)
+    match /loans/{loanId} {
+      // Ler: Se for o dono do empréstimo OU Admin
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Criar: Qualquer autenticado (o app deve garantir que o userId gravado seja o correto)
+      allow create: if isAuthenticated(); 
+      
+      // Atualizar: Dono (ex: reservar/cancelar) OU Admin (ex: aprovar/devolver)
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // 4. COLEÇÃO WAITLIST (Fila de Espera)
+    match /waitlist/{entryId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+  }
+}
