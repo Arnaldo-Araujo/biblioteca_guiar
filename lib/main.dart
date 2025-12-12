@@ -17,6 +17,7 @@ import 'screens/admin/users_list_screen.dart';
 import 'screens/admin/dashboard_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
 import 'screens/profile/change_password_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
 import 'services/notification_service.dart';
 
 @pragma('vm:entry-point')
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
           '/dashboard': (context) => const DashboardScreen(),
           '/edit_profile': (context) => const EditProfileScreen(),
           '/change_password': (context) => const ChangePasswordScreen(),
+          '/forgot-password': (context) => const ForgotPasswordScreen(),
         },
       ),
     );

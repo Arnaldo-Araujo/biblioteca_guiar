@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cpf_cnpj_validator/cpf_validator.dart';
 import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
+import '../../services/firestore_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,9 +22,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _telefoneController = TextEditingController();
   final _enderecoController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
   
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  final FirestoreService _firestoreService = FirestoreService();
 
   void _showImageSourceActionSheet() {
     showModalBottomSheet(
@@ -117,7 +125,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _cpfController,
                 decoration: const InputDecoration(labelText: 'CPF'),
                 keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Campo obrigatório';
+                  if (!CPFValidator.isValid(value)) return 'CPF inválido';
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -135,13 +147,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Senha'),
-                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Senha',
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                ),
+                obscureText: _obscurePassword,
                 validator: (value) => value!.length < 6 ? 'Mínimo 6 caracteres' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _confirmPasswordController,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Senha',
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+                obscureText: _obscureConfirmPassword,
+                validator: (value) {
+                  if (value!.isEmpty) return 'Confirme sua senha';
+                  if (value != _passwordController.text) return 'As senhas não coincidem';
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               
-              if (userProvider.isLoading)
+              if (_isLoading || userProvider.isLoading)
                 const CircularProgressIndicator()
               else
                 SizedBox(
@@ -149,7 +192,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
+                        setState(() => _isLoading = true);
                         try {
+                          // Check CPF Uniqueness
+                          bool cpfExists = await _firestoreService.checkCpfExists(_cpfController.text.trim());
+                          if (cpfExists) {
+                            setState(() => _isLoading = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('CPF já cadastrado'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
                           UserModel newUser = UserModel(
                             uid: '', // Will be set by Auth ID
                             nome: _nomeController.text.trim(),
@@ -174,6 +233,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Erro ao cadastrar: $e')),
                           );
+                        } finally {
+                          if (mounted) setState(() => _isLoading = false);
                         }
                       }
                     },

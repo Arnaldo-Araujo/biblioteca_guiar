@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isObscured = true;
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +47,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Senha', prefixIcon: Icon(Icons.lock)),
-                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(_isObscured ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _isObscured = !_isObscured;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _isObscured,
                   validator: (value) => value!.isEmpty ? 'Informe a senha' : null,
                 ),
                 const SizedBox(height: 24),
@@ -61,12 +74,35 @@ class _LoginScreenState extends State<LoginScreen> {
                             _emailController.text.trim(),
                             _passwordController.text.trim(),
                           );
-                          // Navigation is handled by AuthWrapper
+                          
+                          if (context.mounted) {
+                            Navigator.of(context).pushReplacementNamed('/home');
+                          }
+                        } on FirebaseAuthException catch (e) {
+                          String message;
+                          if (e.code == 'user-not-found') {
+                            message = 'E-mail não cadastrado.';
+                          } else if (e.code == 'wrong-password') {
+                            message = 'Senha incorreta. Tente novamente.';
+                          } else if (e.code == 'invalid-email') {
+                            message = 'Formato de e-mail inválido.';
+                          } else {
+                            message = 'Erro ao fazer login: ${e.message}';
+                          }
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(message),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Erro ao logar: $e'),
+                                content: Text('Erro ao fazer login: $e'),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -80,66 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        final emailController = TextEditingController();
-                        return AlertDialog(
-                          title: const Text('Redefinir Senha'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('Informe seu email para receber o link de redefinição.'),
-                              const SizedBox(height: 16),
-                              TextField(
-                                controller: emailController,
-                                decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('CANCELAR'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                final email = emailController.text.trim();
-                                if (email.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Informe o email')),
-                                  );
-                                  return;
-                                }
-                                Navigator.pop(context); // Close dialog
-                                try {
-                                  await Provider.of<UserProvider>(context, listen: false).sendPasswordResetEmail(email);
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('E-mail enviado! Verifique sua caixa de entrada e a pasta de SPAM/Lixo Eletrônico.'),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Erro: $e'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                              child: const Text('ENVIAR'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
+                    Navigator.pushNamed(context, '/forgot-password');
                   },
                   child: const Text('Esqueci minha senha'),
                 ),
