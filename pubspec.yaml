@@ -25,6 +25,7 @@ dependencies:
   flutter_local_notifications:
   fl_chart: ^0.68.0 # Ou a versão que você usa
   vector_math: ^2.1.5 # <--- ADICIONE ISSO AQUI! 👈
+  cpf_cnpj_validator: ^2.0.0
 
 dependency_overrides:
   vector_math: ^2.1.5

@@ -25,6 +25,15 @@ class FirestoreService {
     await _db.collection('users').doc(user.uid).update(user.toMap());
   }
 
+  Future<bool> checkCpfExists(String cpf) async {
+    final query = await _db
+        .collection('users')
+        .where('cpf', isEqualTo: cpf)
+        .limit(1)
+        .get();
+    return query.docs.isNotEmpty;
+  }
+
   // Books
   Stream<List<BookModel>> getBooks({bool showInactive = false}) {
     return _db.collection('books').snapshots().map((snapshot) {
