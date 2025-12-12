@@ -226,13 +226,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             _imageFile,
                           );
                           
-                          if (mounted) {
-                            Navigator.pop(context); // Go back to login or home
-                          }
+                          // 2. A navegação acontece AUTOMATICAMENTE via AuthWrapper no main.dart.
+                          // Removemos o pop manual para evitar conflitos visuais ou fechamento indevido.
+                          
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Erro ao cadastrar: $e')),
-                          );
+                          if (mounted) {
+                            final errorMessage = e.toString().replaceAll('Exception: ', '');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erro ao cadastrar: $errorMessage'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         } finally {
                           if (mounted) setState(() => _isLoading = false);
                         }

@@ -75,9 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             _passwordController.text.trim(),
                           );
                           
-                          if (context.mounted) {
-                            Navigator.of(context).pushReplacementNamed('/home');
-                          }
+                          // 2. A navegação acontece AUTOMATICAMENTE via AuthWrapper no main.dart
+                          // Não faça pushReplacementNamed aqui!
                         } on FirebaseAuthException catch (e) {
                           String message;
                           if (e.code == 'user-not-found') {
@@ -100,9 +99,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         } catch (e) {
                           if (context.mounted) {
+                            // Limpa o prefixo "Exception:" se existir
+                            final errorMessage = e.toString().replaceAll('Exception: ', '');
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Erro ao fazer login: $e'),
+                                content: Text('Erro ao fazer login: $errorMessage'),
                                 backgroundColor: Colors.red,
                               ),
                             );
