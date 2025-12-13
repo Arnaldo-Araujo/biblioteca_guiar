@@ -16,8 +16,7 @@
 -keep class com.it_nomads.fluttersecurestorage.** { *; }
 
 # Keep Models/JSON (if you use reflection based serialization, though manual is common in Flutter)
-# It is safer directly in Dart, but for native interaction:
--keepmonitoramenities
+
 -keepattributes *Annotation*
 
 # Google ML Kit
