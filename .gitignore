@@ -48,3 +48,13 @@ android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
 firebase_options.dart
+
+# Ignorar chaves de produção
+*.jks
+*.keystore
+**/*.jks
+**/*.keystore
+
+# Ignorar configurações locais (já deve ter, mas confira)
+**/android/local.properties
+**/local.properties
