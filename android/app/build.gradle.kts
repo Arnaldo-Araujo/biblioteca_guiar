@@ -8,6 +8,9 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+
+import java.util.Properties
+
 android {
     namespace = "br.com.i9android.biblioteca_guiar"
     compileSdk = flutter.compileSdkVersion
@@ -24,6 +27,10 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "br.com.i9android.biblioteca_guiar"
@@ -36,16 +43,14 @@ android {
         multiDexEnabled = true
     }
 
-
-
-    val localProperties = java.util.Properties()
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.inputStream().use { localProperties.load(it) }
-    }
-
     signingConfigs {
         create("release") {
+            val localProperties = Properties()
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                localPropertiesFile.inputStream().use { localProperties.load(it) }
+            }
+
             val keyAliasProp = localProperties.getProperty("keyAlias")
             val keyPasswordProp = localProperties.getProperty("keyPassword")
             val storeFileProp = localProperties.getProperty("storeFile")

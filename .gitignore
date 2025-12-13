@@ -58,3 +58,5 @@ firebase_options.dart
 # Ignorar configurações locais (já deve ter, mas confira)
 **/android/local.properties
 **/local.properties
+android/build_log_4.txt
+android/build_log.txt
