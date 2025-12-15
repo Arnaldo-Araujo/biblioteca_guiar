@@ -84,15 +84,16 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> signIn(String email, String password) async {
+    print("--- PROVIDER: Iniciando signIn com $email ---");
     _isLoading = true;
     notifyListeners();
     try {
-      await authService.signIn(email, password);
-      // Update FCM Token on Login
-      await NotificationService().getToken();
-    } on FirebaseAuthException catch (e) {
-      throw _tratarErroAuth(e);
+      print("--- PROVIDER: Chamando Firebase Auth... ---");
+      // Importante: capture o resultado para logar
+      final result = await authService.signIn(email, password);
+      print("--- PROVIDER: Firebase respondeu Sucesso! UID: ${result?.uid} ---"); // Ajuste conforme o retorno do seu authService (User? ou UserCredential)
     } catch (e) {
+      print("--- PROVIDER: Erro capturado: $e ---");
       rethrow;
     } finally {
       _isLoading = false;

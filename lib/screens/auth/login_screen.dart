@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/user_provider.dart';
+import '../../main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +16,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isObscured = true;
+  bool _isLoading = false;
+
+  String _translateFirebaseError(dynamic error) {
+    String message = error.toString();
+    if (message.contains('user-not-found')) return 'E-mail não encontrado.';
+    if (message.contains('wrong-password')) return 'Senha incorreta.';
+    if (message.contains('invalid-credential')) return 'Credenciais inválidas.';
+    if (message.contains('invalid-email')) return 'E-mail inválido.';
+    if (message.contains('user-disabled')) return 'Usuário desativado.';
+    if (message.contains('too-many-requests')) return 'Muitas tentativas. Tente mais tarde.';
+    return 'Erro ao entrar: Verifique seus dados.';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,57 +76,84 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: (value) => value!.isEmpty ? 'Informe a senha' : null,
                 ),
                 const SizedBox(height: 24),
-                if (userProvider.isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        try {
-                          await userProvider.signIn(
-                            _emailController.text.trim(),
-                            _passwordController.text.trim(),
-                          );
-                          
-                          // 2. A navegação acontece AUTOMATICAMENTE via AuthWrapper no main.dart
-                          // Não faça pushReplacementNamed aqui!
-                        } on FirebaseAuthException catch (e) {
-                          String message;
-                          if (e.code == 'user-not-found') {
-                            message = 'E-mail não cadastrado.';
-                          } else if (e.code == 'wrong-password') {
-                            message = 'Senha incorreta. Tente novamente.';
-                          } else if (e.code == 'invalid-email') {
-                            message = 'Formato de e-mail inválido.';
-                          } else {
-                            message = 'Erro ao fazer login: ${e.message}';
-                          }
+                ElevatedButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          // 1. Validação do Form
+                          if (!_formKey.currentState!.validate()) return;
 
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                          // 2. Fecha teclado IMEDIATAMENTE (antes do async)
+                          FocusScope.of(context).unfocus();
+
+                          print("--- UI: Botão Clicado ---");
+
+                          // 3. Loading
+                          setState(() => _isLoading = true);
+
+                          try {
+                            // 4. Chamada Async
+                            await Provider.of<UserProvider>(context, listen: false)
+                                .signIn(_emailController.text.trim(), _passwordController.text.trim());
+
+                            // 2. LOG DE DEBUG
+                            print("--- UI: Login Sucesso! Navegando para Home... ---");
+
+                            // 3. NAVEGAÇÃO SEGURA (Remove tudo e vai para a raiz, forçando reload do AuthWrapper)
+                            if (mounted) {
+                              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                            }
+                          } catch (e) {
+                            // ERRO:
+                            print("--- UI: Erro recebido na tela: $e ---");
+                            
+                            // NÃO verificamos 'mounted' aqui para o SnackBar, pois a chave é global.
+                            // Mas se fôssemos fazer setState para algo local, precisaríamos.
+                            // Como vamos usar a chave global, não tem problema se a tela desmontou.
+
+                            String msg = "Erro desconhecido";
+                            if (e.toString().contains('user-not-found')) {
+                              msg = "Usuário não encontrado.";
+                            } else if (e.toString().contains('wrong-password')) {
+                              msg = "Senha incorreta.";
+                            } else if (e.toString().contains('invalid-credential')) {
+                              msg = "Credenciais inválidas.";
+                            } else if (e.toString().contains('invalid-email')) {
+                              msg = "E-mail inválido.";
+                            } else {
+                              msg = "Erro: ${e.toString()}";
+                            }
+
+                            rootScaffoldMessengerKey.currentState?.showSnackBar(
                               SnackBar(
-                                content: Text(message),
+                                content: Text(msg),
                                 backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                margin: const EdgeInsets.only(top: 20, left: 20, right: 20),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                             );
+                          } finally {
+                            // 5. Parar Loading
+                            if (mounted) {
+                              setState(() => _isLoading = false);
+                            }
                           }
-                        } catch (e) {
-                          if (context.mounted) {
-                            // Limpa o prefixo "Exception:" se existir
-                            final errorMessage = e.toString().replaceAll('Exception: ', '');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Erro ao fazer login: $errorMessage'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                    child: const Text('ENTRAR'),
+                        },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('ENTRAR'),
+                ),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {

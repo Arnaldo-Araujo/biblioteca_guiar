@@ -26,6 +26,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
 }
 
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -51,6 +53,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: MaterialApp(
+        scaffoldMessengerKey: rootScaffoldMessengerKey,
         debugShowCheckedModeBanner: false,
         title: 'Biblioteca Guiar',
         theme: ThemeData(
@@ -92,12 +95,21 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder(
       stream: userProvider.authService.authStateChanges,
       builder: (context, snapshot) {
+        // Logs mantidos para debug
+        print("Stream State: ${snapshot.connectionState}, HasData: ${snapshot.hasData}");
+
+        // 1. REGRA DE OURO: Se tem dados (Usuário logado), mostre a Home IMEDIATAMENTE.
+        if (snapshot.hasData && snapshot.data != null) {
+          return const HomeScreen(); 
+        }
+
+        // 2. Apenas se NÃO tiver dados e o estado for waiting, aí sim mostre loading (opcional)
+        // Mas como combinamos de não ter loading global, deixamos cair no default.
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+           return const LoginScreen(); 
         }
-        if (snapshot.hasData) {
-          return const HomeScreen();
-        }
+
+        // 3. Se não tem dados e não está carregando, é Login.
         return const LoginScreen();
       },
     );
