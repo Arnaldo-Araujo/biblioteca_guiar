@@ -28,57 +28,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   
-  File? _imageFile;
+  XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
   final FirestoreService _firestoreService = FirestoreService();
 
-  void _showImageSourceActionSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Galeria'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImageFromSource(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_camera),
-                title: const Text('Câmera'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImageFromSource(ImageSource.camera);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
+    // Verifica se o Android matou o app e recupera a foto se necessário
+    _checkLostData();
   }
 
-  Future<void> _pickImageFromSource(ImageSource source) async {
+  Future<void> _checkLostData() async {
+    if (Platform.isAndroid) {
+      final LostDataResponse response = await _picker.retrieveLostData();
+      if (response.isEmpty) {
+        return;
+      }
+      if (response.file != null) {
+        setState(() {
+          _imageFile = response.file;
+        });
+      }
+      // Opcional: Tratar response.exception se houver erro
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
-        imageQuality: 50,
-        maxWidth: 800,
+        imageQuality: 50, // CRUCIAL: Reduz memória
+        maxWidth: 600,    // CRUCIAL: Reduz memória
       );
+
       if (pickedFile != null) {
         setState(() {
-          _imageFile = File(pickedFile.path);
+          _imageFile = pickedFile;
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao selecionar imagem: $e')),
-      );
+      print("Erro ao selecionar imagem: $e");
     }
+  }
+
+  // Método para mostrar o Modal de escolha
+  void _showImageSourceActionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Câmera'),
+              onTap: () {
+                Navigator.of(context).pop(); // Fecha o modal ANTES
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galeria'),
+              onTap: () {
+                Navigator.of(context).pop(); // Fecha o modal ANTES
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -94,11 +114,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             children: [
               GestureDetector(
-                onTap: _showImageSourceActionSheet,
+                onTap: () => _showImageSourceActionSheet(context),
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
+                  backgroundImage: _imageFile != null ? FileImage(File(_imageFile!.path)) : null,
                   child: _imageFile == null
                       ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
                       : null,
@@ -223,11 +243,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             _emailController.text.trim(),
                             _passwordController.text.trim(),
                             newUser,
-                            _imageFile,
+                            _imageFile != null ? File(_imageFile!.path) : null,
                           );
                           
-                          // 2. A navegação acontece AUTOMATICAMENTE via AuthWrapper no main.dart.
-                          // Removemos o pop manual para evitar conflitos visuais ou fechamento indevido.
+                          // A navegação acontece automaticamente via AuthWrapper
                           
                         } catch (e) {
                           if (mounted) {
