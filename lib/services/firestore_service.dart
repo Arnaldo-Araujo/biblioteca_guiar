@@ -172,8 +172,19 @@ class FirestoreService {
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => LoanModel.fromMap(doc.data(), doc.id)).toList());
   }
-  Stream<List<UserModel>> getAllUsersStream() {
-    return _db.collection('users').snapshots().map((snapshot) {
+  Future<void> softDeleteUser(String targetUserId, bool targetIsAdmin) async {
+    if (targetIsAdmin) {
+      throw Exception("Não é permitido desativar outro Administrador.");
+    }
+    await _db.collection('users').doc(targetUserId).update({'isActive': false});
+  }
+
+  Stream<List<UserModel>> getAllUsersStream({bool includeInactive = false}) {
+    Query query = _db.collection('users');
+    if (!includeInactive) {
+      query = query.where('isActive', isEqualTo: true);
+    }
+    return query.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList();
     });
   }

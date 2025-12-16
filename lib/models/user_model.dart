@@ -9,6 +9,7 @@ class UserModel {
   final String endereco;
   final bool isAdmin;
   final bool isHelper;
+  final bool isActive; // New field
   final String? photoUrl;
 
   UserModel({
@@ -20,6 +21,7 @@ class UserModel {
     required this.endereco,
     required this.isAdmin,
     this.isHelper = false,
+    this.isActive = true, // Default to true
     this.photoUrl,
   });
 
@@ -33,6 +35,7 @@ class UserModel {
       'endereco': endereco,
       'isAdmin': isAdmin,
       'isHelper': isHelper,
+      'isActive': isActive,
       'photoUrl': photoUrl,
     };
   }
@@ -47,6 +50,7 @@ class UserModel {
       endereco: map['endereco'] ?? '',
       isAdmin: map['isAdmin'] ?? false,
       isHelper: map['isHelper'] ?? false,
+      isActive: map['isActive'] ?? true, // Default true for existing docs
       photoUrl: map['photoUrl'],
     );
   }
@@ -54,7 +58,7 @@ class UserModel {
   factory UserModel.fromDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return UserModel(
-      uid: doc.id, // Priority: Use document ID
+      uid: doc.id,
       nome: data['nome'] ?? '',
       email: data['email'] ?? '',
       cpf: data['cpf'] ?? '',
@@ -62,6 +66,7 @@ class UserModel {
       endereco: data['endereco'] ?? '',
       isAdmin: data['isAdmin'] ?? false,
       isHelper: data['isHelper'] ?? false,
+      isActive: data['isActive'] ?? true, // Default true
       photoUrl: data['photoUrl'],
     );
   }
