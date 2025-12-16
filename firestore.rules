@@ -25,12 +25,16 @@ service cloud.firestore {
 
     // --- REGRAS POR COLEÇÃO ---
 
-    // 1. COLEÇÃO USERS
-    // Solução para o erro 'permission-denied' no cadastro:
-    // Permitimos a escrita se o UID do auth for igual ao ID do documento (Auto-cadastro) OU se for Admin.
+    // Regra: O usuário só pode escrever na coleção 'users' se o ID do documento for igual ao seu UID.
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId) || isAdmin();
+      // Permite ler detalhes (GET) apenas se for o dono ou admin
+      allow get: if isOwner(userId) || isAdmin();
+      
+      // Permite listar/pesquisar (LIST) se estiver autenticado (Necessário para verificar unicidade de CPF)
+      allow list: if isAuthenticated();
+
+      // Permite criar/atualizar apenas seus próprios dados ou se for admin
+      allow create, update: if isOwner(userId) || isAdmin();
     }
 
     // 2. COLEÇÃO BOOKS

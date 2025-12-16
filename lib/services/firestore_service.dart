@@ -25,6 +25,10 @@ class FirestoreService {
     await _db.collection('users').doc(user.uid).update(user.toMap());
   }
 
+  Future<void> saveUser(UserModel user) async {
+    await _db.collection('users').doc(user.uid).set(user.toMap());
+  }
+
   Future<bool> checkCpfExists(String cpf) async {
     final query = await _db
         .collection('users')
