@@ -120,6 +120,13 @@ class AppDrawer extends StatelessWidget {
               Navigator.pushNamed(context, '/change_password');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Configurações'),
+            onTap: () {
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.exit_to_app),

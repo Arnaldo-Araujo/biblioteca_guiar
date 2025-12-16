@@ -7,6 +7,7 @@ import 'providers/user_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/loan_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -18,6 +19,7 @@ import 'screens/admin/dashboard_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
 import 'screens/profile/change_password_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
+import 'screens/settings/settings_screen.dart';
 import 'services/notification_service.dart';
 
 @pragma('vm:entry-point')
@@ -51,34 +53,34 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookProvider()),
         ChangeNotifierProvider(create: (_) => LoanProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        scaffoldMessengerKey: rootScaffoldMessengerKey,
-        debugShowCheckedModeBanner: false,
-        title: 'Biblioteca Guiar',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            filled: true,
-            fillColor: Colors.grey[100],
-          ),
-        ),
-        home: const AuthWrapper(),
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/add_book': (context) => const AddEditBookScreen(),
-          '/edit_book': (context) => const AddEditBookScreen(),
-          '/my_loans': (context) => const MyLoansScreen(),
-          '/manage_loans': (context) => const ManageLoansScreen(),
-          '/users': (context) => const UsersListScreen(),
-          '/dashboard': (context) => const DashboardScreen(),
-          '/edit_profile': (context) => const EditProfileScreen(),
-          '/change_password': (context) => const ChangePasswordScreen(),
-          '/forgot-password': (context) => const ForgotPasswordScreen(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
+            debugShowCheckedModeBanner: false,
+            title: 'Biblioteca Guiar',
+            theme: themeProvider.lightTheme,
+            darkTheme: themeProvider.darkTheme,
+            themeMode: themeProvider.themeMode,
+            home: const AuthWrapper(),
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/register': (context) => const RegisterScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/add_book': (context) => const AddEditBookScreen(),
+              '/edit_book': (context) => const AddEditBookScreen(),
+              '/my_loans': (context) => const MyLoansScreen(),
+              '/manage_loans': (context) => const ManageLoansScreen(),
+              '/users': (context) => const UsersListScreen(),
+              '/dashboard': (context) => const DashboardScreen(),
+              '/edit_profile': (context) => const EditProfileScreen(),
+              '/change_password': (context) => const ChangePasswordScreen(),
+              '/forgot-password': (context) => const ForgotPasswordScreen(),
+              '/settings': (context) => const SettingsScreen(),
+            },
+          );
         },
       ),
     );
