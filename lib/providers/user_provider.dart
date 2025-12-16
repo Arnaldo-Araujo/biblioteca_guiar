@@ -287,6 +287,85 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  // Método A: Desativar Conta (Soft Delete)
+  Future<void> disableAccount(String feedback) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null || _userModel == null) throw Exception('Usuário não identificado.');
+
+      // 1. Salvar feedback
+      await _firestoreService.saveUserFeedback(
+        uid: user.uid,
+        feedback: feedback,
+        type: 'soft_delete',
+      );
+
+      // 2. Desativar Soft Delete
+      await _firestoreService.softDeleteUser(user.uid, _userModel!.isAdmin);
+
+      // 3. Logout
+      await signOut();
+
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Método B: Excluir Permanentemente (Hard Delete)
+  Future<void> deleteAccountPermanently(String feedback, String password) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null || _userModel == null) throw Exception('Usuário não identificado.');
+
+      // Passo 0: Reautenticação (Segurança)
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Passo 1: Salvar Feedback (Histórico externo)
+      await _firestoreService.saveDeletedUserFeedback(
+        email: user.email ?? 'no-email',
+        uid: user.uid,
+        feedback: feedback,
+      );
+
+      // Passo 2: Limpar Storage (Foto)
+      if (_userModel!.photoUrl != null && _userModel!.photoUrl!.isNotEmpty) {
+        await _storageService.deleteUserPhoto(user.uid);
+      }
+
+      // Passo 3: Limpar Firestore (Doc do usuário)
+      // Nota: As regras de segurança devem permitir delete para o próprio user
+      await _firestoreService.deleteUserDoc(user.uid);
+
+      // Passo 4: Limpar Auth
+      await user.delete();
+
+      // Limpa estado local
+      _userModel = null;
+
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        throw Exception('Senha incorreta.');
+      }
+      throw _tratarErroAuth(e);
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void clearData() {
     _userModel = null;
     notifyListeners();
