@@ -189,6 +189,35 @@ class FirestoreService {
     });
   }
 
+  Future<void> saveUserFeedback({
+    required String uid,
+    required String feedback,
+    required String type,
+  }) async {
+    await _db.collection('users').doc(uid).collection('feedback_history').add({
+      'feedback': feedback,
+      'type': type,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> saveDeletedUserFeedback({
+    required String email,
+    required String uid,
+    required String feedback,
+  }) async {
+    await _db.collection('deleted_users_feedback').add({
+      'original_uid': uid,
+      'email': email,
+      'feedback': feedback,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> deleteUserDoc(String uid) async {
+    await _db.collection('users').doc(uid).delete();
+  }
+
   Stream<List<LoanModel>> getLoansByUserId(String uid) {
     return _db.collection('loans')
         .where('userId', isEqualTo: uid)

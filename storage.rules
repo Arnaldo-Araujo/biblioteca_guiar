@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Regra para fotos de perfil
+    // Caminho: user_profiles/{userId}/profile.jpg
+    match /user_profiles/{userId}/{fileName} {
+      // Qualquer usuário autenticado pode ver as fotos (para listas de usuários)
+      allow read: if request.auth != null;
+      
+      // Apenas o próprio usuário pode fazer upload (write) ou apagar (delete) sua foto
+      allow write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Regra para capas de livros
+    // Caminho: book_covers/{fileName}
+    match /book_covers/{fileName} {
+      // Leitura pública (para mostrar os livros no app mesmo sem login, se desejado, ou auth)
+      allow read: if true; 
+      
+      // Escrita apenas para usuários autenticados (Idealmente seria apenas Admin, mas vamos manter Auth por enquanto)
+      allow write: if request.auth != null;
+    }
+  }
+}
