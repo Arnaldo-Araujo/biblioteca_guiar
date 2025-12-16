@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
-import '../services/firestore_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 
@@ -101,44 +101,95 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signUp(String email, String password, UserModel user, File? imageFile) async {
+  // Método 1: Apenas cria o usuário no Auth (Tela 1)
+  Future<void> registerAuthOnly(String email, String password) async {
     _isLoading = true;
     notifyListeners();
     try {
-      // 1. Create Auth User & Initial Firestore Doc
-      User? authUser = await authService.signUp(email, password, user);
-      
-      if (authUser != null && imageFile != null) {
-        // 2. Upload Photo if selected
-        String photoUrl = await _storageService.uploadUserPhoto(imageFile, authUser.uid);
-        
-        // 3. Update User Model with Photo URL
-        UserModel updatedUser = UserModel(
-          uid: authUser.uid,
-          nome: user.nome,
-          email: user.email,
-          cpf: user.cpf,
-          telefone: user.telefone,
-          endereco: user.endereco,
-          isAdmin: user.isAdmin,
-          isHelper: user.isHelper,
-          photoUrl: photoUrl,
-        );
-        
-        // 4. Update Firestore
-        await _firestoreService.updateUser(updatedUser);
-        
-        // 5. Update Local State
-        _userModel = updatedUser;
-      }
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Sucesso: O usuário está logado, mas sem dados no Firestore ainda.
     } on FirebaseAuthException catch (e) {
       throw _tratarErroAuth(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Método 2: Completa o cadastro no Firestore (Tela 2)
+  Future<void> completeRegistration(UserModel user, File? imageFile) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final authUser = FirebaseAuth.instance.currentUser;
+      if (authUser == null) throw Exception('Usuário não autenticado.');
+
+      // 1. Validação de CPF (Query direta para obter dados se existir)
+      final QuerySnapshot result = await FirebaseFirestore.instance
+          .collection('users')
+          .where('cpf', isEqualTo: user.cpf)
+          .get();
+
+      if (result.docs.isNotEmpty) {
+        // CENÁRIO A: CPF Duplicado
+        final doc = result.docs.first;
+        final data = doc.data() as Map<String, dynamic>;
+        final existingEmail = data['email'] ?? 'email desconhecido';
+        final maskedEmail = _maskEmail(existingEmail);
+
+        // ROLLBACK Crítico: Apagar o usuário Auth criado no passo 1
+        await authUser.delete();
+
+        throw Exception("Este CPF já possui cadastro vinculado ao e-mail: $maskedEmail");
+      }
+
+      // CENÁRIO B: Sucesso - Processar imagem e salvar
+      String photoUrl = '';
+      if (imageFile != null) {
+        photoUrl = await _storageService.uploadUserPhoto(imageFile, authUser.uid);
+      }
+
+      // Monta o model final
+      UserModel newUser = UserModel(
+        uid: authUser.uid,
+        nome: user.nome,
+        email: authUser.email ?? user.email,
+        cpf: user.cpf,
+        telefone: user.telefone,
+        endereco: user.endereco,
+        isAdmin: false,
+        isHelper: false,
+        photoUrl: photoUrl.isNotEmpty ? photoUrl : user.photoUrl,
+      );
+
+      // Salva usando o método seguro
+      await _firestoreService.saveUser(newUser);
+
+      // Atualiza estado local
+      _userModel = newUser;
+
     } catch (e) {
       rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  String _maskEmail(String email) {
+    if (email.length <= 4) return email;
+    final parts = email.split('@');
+    if (parts.length != 2) return email;
+    
+    final name = parts[0];
+    final domain = parts[1];
+    
+    final visibleName = name.length > 2 ? name.substring(0, 2) : name;
+    return "$visibleName***@$domain";
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
