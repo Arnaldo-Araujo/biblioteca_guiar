@@ -45,11 +45,76 @@ class AdminUsersListScreen extends StatelessWidget {
                   ),
                   title: Text(user.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(user.email),
-                  trailing: user.isAdmin
-                      ? const Chip(label: Text('Admin'), backgroundColor: Colors.redAccent, labelStyle: TextStyle(color: Colors.white))
-                      : user.isHelper
-                          ? const Chip(label: Text('Helper'), backgroundColor: Colors.orangeAccent)
-                          : const Icon(Icons.chevron_right),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (user.isAdmin)
+                        const Chip(
+                            label: Text('Admin', style: TextStyle(fontSize: 10)),
+                            backgroundColor: Colors.redAccent,
+                            labelStyle: TextStyle(color: Colors.white))
+                      else if (user.isHelper)
+                        const Chip(
+                            label: Text('Helper', style: TextStyle(fontSize: 10)),
+                            backgroundColor: Colors.orangeAccent),
+                      
+                      const SizedBox(width: 8),
+
+                      // Botão de Exclusão Lógica
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        color: user.isAdmin ? Colors.grey : Colors.red,
+                        tooltip: user.isAdmin
+                            ? 'Não é possível excluir administradores'
+                            : 'Desativar usuário',
+                        onPressed: user.isAdmin
+                            ? null
+                            : () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Confirmar desativação'),
+                                    content: const Text(
+                                        'Tem certeza que deseja desativar este usuário? Ele perderá acesso ao sistema.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Cancelar'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Fecha Dialog
+                                          try {
+                                            await firestoreService.softDeleteUser(
+                                                user.uid, user.isAdmin);
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                    content: Text('Usuário desativado com sucesso.')),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                    content: Text('Erro: $e'),
+                                                    backgroundColor: Colors.red),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: const Text('Desativar',
+                                            style: TextStyle(color: Colors.red)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,

@@ -33,8 +33,12 @@ service cloud.firestore {
       // Permite listar/pesquisar (LIST) se estiver autenticado (Necessário para verificar unicidade de CPF)
       allow list: if isAuthenticated();
 
-      // Permite criar/atualizar apenas seus próprios dados ou se for admin
-      allow create, update: if isOwner(userId) || isAdmin();
+      // (CREATE) Criar: Apenas o dono ou admin
+      allow create: if isOwner(userId) || isAdmin();
+
+      // (UPDATE) Editar: Dono pode editar a si mesmo. Admin pode editar APENAS se o alvo NÃO for Admin.
+      // Isso impede que um admin delete/desative outro admin.
+      allow update: if isOwner(userId) || (isAdmin() && resource.data.isAdmin == false);
     }
 
     // 2. COLEÇÃO BOOKS
