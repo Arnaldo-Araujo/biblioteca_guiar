@@ -1,0 +1,26 @@
+Bem-vindo ao Biblioteca Guiar!
+
+O aplicativo definitivo para a gestão moderna do seu acervo bibliográfico. Desenvolvido para facilitar a vida de administradores e leitores, o Biblioteca Guiar oferece uma plataforma intuitiva e poderosa para o controle de livros e empréstimos.
+
+Principais Funcionalidades:
+
+📚 Acervo Digital Completo
+Navegue pelo catálogo de livros, verifique a disponibilidade, leia sinopses e encontre suas próximas leituras filtrando por categorias.
+
+🔄 Empréstimos Inteligentes
+Realize reservas de livros com um toque e acompanhe os prazos de devolução. O sistema ajuda você a nunca atrasar uma entrega.
+
+🛠️ Ferramentas Administrativas (Admin)
+Para gestores de biblioteca, oferecemos um painel robusto:
+- Cadastro e edição de livros e exemplares.
+- Gestão de usuários e permissões (Leitor, Helper, Admin).
+- Controle total de empréstimos, devoluções e renovações.
+- Exclusão lógica de usuários e gerenciamento de permissões.
+
+👤 Perfil do Leitor
+Acompanhe seu histórico de empréstimos, status da sua conta e mantenha seus dados pessoais atualizados com facilidade.
+
+🔒 Segurança e Privacidade
+Seus dados estão protegidos. Conta com sistema de autenticação seguro e opções transparentes de gerenciamento de conta, incluindo a possibilidade de desativar ou excluir seus dados permanentemente.
+
+Transforme a maneira como sua comunidade interage com os livros. Baixe o Biblioteca Guiar agora e tenha a biblioteca na palma da mão!
