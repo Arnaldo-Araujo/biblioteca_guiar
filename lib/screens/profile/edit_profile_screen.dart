@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/custom_network_image.dart';
+import '../../widgets/delete_account_dialog.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -154,16 +155,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               if (userProvider.isLoading)
                 const CircularProgressIndicator()
               else
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _saveProfile,
-                    child: const Text('SALVAR ALTERAÇÕES'),
-                  ),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _saveProfile,
+                        child: const Text('SALVAR ALTERAÇÕES'),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () => _showDeleteAccountDialog(context),
+                      icon: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                      label: const Text(
+                        'Encerrar minha conta',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
                 ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => DeleteAccountDialog(
+        onDisable: (feedback) async {
+          await Provider.of<UserProvider>(context, listen: false)
+              .disableAccount(feedback);
+          if (context.mounted) {
+            Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+          }
+        },
+        onDeletePermanently: (feedback, password) async {
+          await Provider.of<UserProvider>(context, listen: false)
+              .deleteAccountPermanently(feedback, password);
+          if (context.mounted) {
+            Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+          }
+        },
       ),
     );
   }

@@ -61,56 +61,19 @@ class AdminUsersListScreen extends StatelessWidget {
                       const SizedBox(width: 8),
 
                       // Botão de Exclusão Lógica
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        color: user.isAdmin ? Colors.grey : Colors.red,
-                        tooltip: user.isAdmin
-                            ? 'Não é possível excluir administradores'
-                            : 'Desativar usuário',
-                        onPressed: user.isAdmin
-                            ? null
-                            : () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Confirmar desativação'),
-                                    content: const Text(
-                                        'Tem certeza que deseja desativar este usuário? Ele perderá acesso ao sistema.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text('Cancelar'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          Navigator.pop(context); // Fecha Dialog
-                                          try {
-                                            await firestoreService.softDeleteUser(
-                                                user.uid, user.isAdmin);
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                    content: Text('Usuário desativado com sucesso.')),
-                                              );
-                                            }
-                                          } catch (e) {
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                    content: Text('Erro: $e'),
-                                                    backgroundColor: Colors.red),
-                                              );
-                                            }
-                                          }
-                                        },
-                                        child: const Text('Desativar',
-                                            style: TextStyle(color: Colors.red)),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                      ),
+                      if (!user.isAdmin)
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          tooltip: 'Desativar usuário',
+                          onPressed: () => _confirmSoftDelete(context, user, firestoreService),
+                        )
+                      else
+                        const IconButton(
+                          icon: Icon(Icons.delete_outline, color: Colors.grey),
+                          tooltip: 'Não é possível excluir administradores',
+                          onPressed: null,
+                        ),
+                      
                       const SizedBox(width: 4),
                       const Icon(Icons.chevron_right),
                     ],
@@ -128,6 +91,43 @@ class AdminUsersListScreen extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+
+  void _confirmSoftDelete(BuildContext context, UserModel user, FirestoreService firestoreService) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar desativação'),
+        content: const Text(
+            'Tem certeza que deseja desativar este usuário? Ele perderá acesso ao sistema.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Fecha Dialog
+              try {
+                await firestoreService.softDeleteUser(user.uid, user.isAdmin);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Usuário desativado com sucesso.')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: const Text('Desativar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
