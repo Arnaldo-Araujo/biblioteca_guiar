@@ -89,6 +89,14 @@ class AppDrawer extends StatelessWidget {
                   Navigator.pushNamed(context, '/users');
                 },
               ),
+            if (user?.isAdmin == true)
+              ListTile(
+                leading: const Icon(Icons.mail),
+                title: const Text('Mensagens'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/admin_inbox');
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.library_books),
               title: const Text('Gerenciar Empréstimos'),

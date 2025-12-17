@@ -20,6 +20,8 @@ import 'screens/profile/edit_profile_screen.dart';
 import 'screens/profile/change_password_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/admin/admin_inbox_screen.dart';
+import 'providers/chat_provider.dart';
 import 'services/notification_service.dart';
 
 @pragma('vm:entry-point')
@@ -53,7 +55,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookProvider()),
         ChangeNotifierProvider(create: (_) => LoanProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -79,6 +83,7 @@ class MyApp extends StatelessWidget {
               '/change_password': (context) => const ChangePasswordScreen(),
               '/forgot-password': (context) => const ForgotPasswordScreen(),
               '/settings': (context) => const SettingsScreen(),
+              '/admin_inbox': (context) => const AdminInboxScreen(),
             },
           );
         },
