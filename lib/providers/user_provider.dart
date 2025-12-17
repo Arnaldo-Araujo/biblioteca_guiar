@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // Added
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
@@ -370,22 +371,13 @@ class UserProvider with ChangeNotifier {
       if (user == null) throw Exception('Usuário não identificado.');
 
       // 1. REAUTENTICAÇÃO (Obrigatório)
-      try {
-        AuthCredential credential = EmailAuthProvider.credential(
-          email: user.email!,
-          password: password,
-        );
-        await user.reauthenticateWithCredential(credential);
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'wrong-password') {
-          throw Exception('Senha incorreta');
-        }
-        rethrow;
-      }
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
 
-      // 2. ORDEM DE EXCLUSÃO
-
-      // a. Salvar Feedback
+      // 2. SALVAR FEEDBACK (Opcional)
       try {
         await _firestoreService.saveDeletedUserFeedback(
           email: user.email ?? 'no-email',
@@ -396,28 +388,40 @@ class UserProvider with ChangeNotifier {
         print("Erro ao salvar feedback: $e");
       }
 
-      // b. Excluir Foto do Storage (Silencioso)
-      try {
-         await _storageService.deleteUserPhoto(user.uid);
-      } catch (e) {
-        print("Storage delete error (ignored): $e");
+      // 3. DELETAR FOTO DO STORAGE (O Passo que faltava)
+      // Verifica URL da foto no model (estado local)
+      if (_userModel?.photoUrl != null && _userModel!.photoUrl!.isNotEmpty) {
+        try {
+          // Só tenta deletar se for url do firebase storage
+          if (_userModel!.photoUrl!.contains('firebase') || _userModel!.photoUrl!.contains('storage')) {
+             await FirebaseStorage.instance.refFromURL(_userModel!.photoUrl!).delete();
+             print("Foto de perfil deletada com sucesso.");
+          }
+        } catch (e) {
+          print("Erro ao deletar foto (ou não existia): $e");
+          // Não damos rethrow aqui para garantir que a conta seja excluída mesmo se a foto falhar
+        }
       }
 
-      // c. Excluir documento do Firestore
+      // 4. Deletar Documento do Firestore
+      print("--- EXCLUINDO DOC ---");
       await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
 
-      // d. Excluir usuário do Auth
+      // 5. Deletar Autenticação (Último passo)
       await user.delete();
 
       // Limpa estado local
       _userModel = null;
+      notifyListeners();
 
     } catch (e) {
       print("Erro ao excluir conta: $e");
       rethrow;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isLoading) {
+         _isLoading = false;
+         notifyListeners();
+      }
     }
   }
 
