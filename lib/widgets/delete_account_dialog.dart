@@ -1,8 +1,22 @@
 import 'package:flutter/material.dart';
 import '../main.dart'; // Import rootScaffoldMessengerKey
 
+/// ==============================================================================
+/// ARQUIVO: delete_account_dialog.dart
+/// OBJETIVO: Exibir diálogo para encerramento de conta (Desativar ou Excluir).
+/// LÓGICA:
+/// - Possui 2 estados visuais:
+///   1. Coleta de Feedback + Botão "Desativar" + Link para "Excluir".
+///   2. Confirmação de Senha para exclusão permanente.
+/// - Gerencia navegação segura após exclusão (Logout e Redirect para Login).
+/// ==============================================================================
 class DeleteAccountDialog extends StatefulWidget {
+  
+  /// Callback para ação de Desativar (Soft Delete).
   final Future<void> Function(String feedback) onDisable;
+  
+  /// Callback para ação de Excluir Permanente (Hard Delete).
+  /// Exige senha para confirmação.
   final Future<void> Function(String feedback, String password) onDeletePermanently;
 
   const DeleteAccountDialog({

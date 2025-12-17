@@ -9,6 +9,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 
+/// ==============================================================================
+/// CLASSE: UserProvider
+/// OBJETIVO: Gerenciar o estado global do Usuário e da Autenticação.
+/// LÓGICA PRINCIPAL:
+/// - Ouve alterações no estado do FirebaseAuth (Login/Logout).
+/// - Busca e mantém o UserModel atualizado em memória.
+/// - Fornece métodos para SignIn, SignUp (2 etapas), Update, Disable e Delete.
+/// - Implementa regras de negócio como verificação de CPF único.
+/// ==============================================================================
 class UserProvider with ChangeNotifier {
   final AuthService authService;
   final FirestoreService _firestoreService;
@@ -28,23 +37,17 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> _checkCurrentUser() async {
+    // Escuta o stream de alterações de autenticação do Firebase.
     authService.authStateChanges.listen((User? user) async {
       if (user != null) {
         final currentUid = user.uid;
         
         try {
-          // Busca dados do Firestore sem travar o listener se falhar
+          // 1. Busca dados do usuário no Firestore
           final userData = await _firestoreService.getUser(currentUid);
           
-          // VERIFICAÇÃO DE SEGURANÇA (Race Condition Check)
-          // Só atualiza o model se o usuário logado AINDA for o mesmo que pediu os dados
-          // Aqui usamos FirebaseAuth.instance.currentUser ou a instância exposta pelo AuthService se acessível.
-          // Como AuthService é um wrapper, e provavelmente não expõe o currentUser diretamente como propriedade pública mutável além do stream,
-          // o mais seguro é verificar se 'user.uid' ainda bate com o uid do evento, mas o evento 'user' é snapshot.
-          // Precisamos saber se o "estado atual do auth" mudou.
-          // O ideal é checar FirebaseAuth.instance.currentUser.uid, mas vamos usar o user.uid capturado versus o que o authService reportaria agora.
-          // Se o authService expõe currentUser, usamos ele. Se não, usamos FirebaseAuth.instance.
-          
+          // 2. VERIFICAÇÃO DE SEGURANÇA (Race Condition Check)
+          // Garante que o usuário logado ainda é o mesmo antes de atualizar o estado.
           if (FirebaseAuth.instance.currentUser?.uid == currentUid) {
             _userModel = userData;
             notifyListeners();
@@ -53,6 +56,7 @@ class UserProvider with ChangeNotifier {
              print("Erro ao buscar dados do usuário: $e");
         }
       } else {
+        // Usuário deslogado: limpa o model.
         _userModel = null;
         notifyListeners();
       }
@@ -371,7 +375,8 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  // Método B: Excluir Permanentemente (Hard Delete)
+  /// Método B: Excluir Permanentemente (Hard Delete).
+  /// Reautentica o usuário, exclui feedback, foto, doc do Firestore e conta Auth.
   Future<void> deleteAccountPermanently(String feedback, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -380,6 +385,7 @@ class UserProvider with ChangeNotifier {
       if (user == null) throw Exception('Usuário não identificado.');
 
       // 1. REAUTENTICAÇÃO (Obrigatório)
+      // Confirma identidade para operações sensíveis.
       AuthCredential credential = EmailAuthProvider.credential(
         email: user.email!,
         password: password,
@@ -387,6 +393,7 @@ class UserProvider with ChangeNotifier {
       await user.reauthenticateWithCredential(credential);
 
       // 2. SALVAR FEEDBACK (Opcional)
+      // Preserva o motivo da saída em uma coleção separada.
       try {
         await _firestoreService.saveDeletedUserFeedback(
           email: user.email ?? 'no-email',
@@ -397,26 +404,25 @@ class UserProvider with ChangeNotifier {
         print("Erro ao salvar feedback: $e");
       }
 
-      // 3. DELETAR FOTO DO STORAGE (O Passo que faltava)
-      // Verifica URL da foto no model (estado local)
+      // 3. DELETAR FOTO DO STORAGE
+      // Tenta remover a referência física do arquivo.
       if (_userModel?.photoUrl != null && _userModel!.photoUrl!.isNotEmpty) {
         try {
-          // Só tenta deletar se for url do firebase storage
           if (_userModel!.photoUrl!.contains('firebase') || _userModel!.photoUrl!.contains('storage')) {
              await FirebaseStorage.instance.refFromURL(_userModel!.photoUrl!).delete();
              print("Foto de perfil deletada com sucesso.");
           }
         } catch (e) {
           print("Erro ao deletar foto (ou não existia): $e");
-          // Não damos rethrow aqui para garantir que a conta seja excluída mesmo se a foto falhar
         }
       }
 
-      // 4. Deletar Documento do Firestore
+      // 4. DELETAR DOCUMENTO DO FIRESTORE
       print("--- EXCLUINDO DOC ---");
       await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
 
-      // 5. Deletar Autenticação (Último passo)
+      // 5. DELETAR AUTENTICAÇÃO
+      // Remove o acesso a login.
       await user.delete();
 
       // Limpa estado local
