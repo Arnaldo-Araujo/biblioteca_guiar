@@ -206,6 +206,51 @@ class UserProvider with ChangeNotifier {
     return _firestoreService.getAllUsers();
   }
 
+  Future<List<UserModel>> getHelpers() async {
+    try {
+      final QuerySnapshot result = await FirebaseFirestore.instance
+          .collection('users')
+          .where('isAdmin', isEqualTo: true) // Simplification: assuming admins are helpers
+          // Ideally we would use Filter.or if available or multiple queries, but let's start with this 
+          // or check client side if index issues arise. 
+          // The prompt says "isAdmin == true (or isHelper == true)".
+          // Firestore OR queries (Filter.or) require recent SDKs.
+          // Let's grab all users and filter client-side for simplicity and compatibility 
+          // unless the user base is huge, which is unlikely for this app.
+          // actually, let's try a direct query for isAdmin = true first.
+          .get();
+
+      // If we want both, we can't do a simple OR query without composite indexes usually.
+      // Let's try fetching byisAdmin first.
+      // If the requirement implies separates roles, I'll fetch both or filter.
+      // Given the file content shows 'isHelper' in UserModel, I should check it.
+      
+      final admins = result.docs.map((doc) => UserModel.fromDocument(doc)).toList();
+      
+      // Let's also fetch isHelper if it's different. 
+      // Safe bet: Fetch where isAdmin is true.
+      // Then fetch where isHelper is true.
+      // Combine and deduplicate.
+      
+      final QuerySnapshot resultHelpers = await FirebaseFirestore.instance
+          .collection('users')
+          .where('isHelper', isEqualTo: true)
+          .get();
+          
+      final helpers = resultHelpers.docs.map((doc) => UserModel.fromDocument(doc)).toList();
+      
+      final all = [...admins, ...helpers];
+      // Deduplicate by UID
+      final uniqueParams = <String>{};
+      final uniqueUsers = all.where((u) => uniqueParams.add(u.uid)).toList();
+      
+      return uniqueUsers;
+    } catch (e) {
+      print("Error fetching helpers: $e");
+      return [];
+    }
+  }
+
   Future<void> updateUser(UserModel user) async {
     await _firestoreService.updateUser(user);
     notifyListeners();
@@ -322,43 +367,53 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null || _userModel == null) throw Exception('Usuário não identificado.');
+      if (user == null) throw Exception('Usuário não identificado.');
 
-      // Passo 0: Reautenticação (Segurança)
-      AuthCredential credential = EmailAuthProvider.credential(
-        email: user.email!,
-        password: password,
-      );
-      await user.reauthenticateWithCredential(credential);
-
-      // Passo 1: Salvar Feedback (Histórico externo)
-      await _firestoreService.saveDeletedUserFeedback(
-        email: user.email ?? 'no-email',
-        uid: user.uid,
-        feedback: feedback,
-      );
-
-      // Passo 2: Limpar Storage (Foto)
-      if (_userModel!.photoUrl != null && _userModel!.photoUrl!.isNotEmpty) {
-        await _storageService.deleteUserPhoto(user.uid);
+      // 1. REAUTENTICAÇÃO (Obrigatório)
+      try {
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+        await user.reauthenticateWithCredential(credential);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'wrong-password') {
+          throw Exception('Senha incorreta');
+        }
+        rethrow;
       }
 
-      // Passo 3: Limpar Firestore (Doc do usuário)
-      // Nota: As regras de segurança devem permitir delete para o próprio user
-      await _firestoreService.deleteUserDoc(user.uid);
+      // 2. ORDEM DE EXCLUSÃO
 
-      // Passo 4: Limpar Auth
+      // a. Salvar Feedback
+      try {
+        await _firestoreService.saveDeletedUserFeedback(
+          email: user.email ?? 'no-email',
+          uid: user.uid,
+          feedback: feedback,
+        );
+      } catch (e) {
+        print("Erro ao salvar feedback: $e");
+      }
+
+      // b. Excluir Foto do Storage (Silencioso)
+      try {
+         await _storageService.deleteUserPhoto(user.uid);
+      } catch (e) {
+        print("Storage delete error (ignored): $e");
+      }
+
+      // c. Excluir documento do Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+
+      // d. Excluir usuário do Auth
       await user.delete();
 
       // Limpa estado local
       _userModel = null;
 
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'wrong-password') {
-        throw Exception('Senha incorreta.');
-      }
-      throw _tratarErroAuth(e);
     } catch (e) {
+      print("Erro ao excluir conta: $e");
       rethrow;
     } finally {
       _isLoading = false;
