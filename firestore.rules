@@ -4,64 +4,71 @@ service cloud.firestore {
 
     // --- FUNÇÕES AUXILIARES ---
 
-    // Verifica se o usuário está autenticado no Firebase Auth
     function isAuthenticated() {
       return request.auth != null;
     }
 
     // Verifica se o usuário logado é o "dono" do ID fornecido
-    // Útil para garantir que o usuário só mexa nos próprios dados
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Verifica se o usuário logado possui a flag 'isAdmin' como true no Firestore
-    // Usa 'exists' para evitar erros caso o documento do usuário ainda não exista
+    // Verifica se é Admin (com proteção 'exists' para não quebrar se o user não existir)
     function isAdmin() {
       return isAuthenticated() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // --- REGRAS POR COLEÇÃO ---
-
-    // Regra: O usuário só pode escrever na coleção 'users' se o ID do documento for igual ao seu UID.
+    // --- 1. REGRAS DE USUÁRIOS ---
     match /users/{userId} {
-      // Leitura
-      allow list: if request.auth != null;
-      allow get: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // List: Qualquer logado pode listar (para validar CPF)
+      allow list: if isAuthenticated();
       
-      // Escrita (Create/Update)
-      allow create, update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Get: Dono ou Admin vê detalhes
+      allow get: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
       
-      // Exclusão (Delete) - EXPLÍCITA
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      // Create/Update: Dono ou Admin (para promover helper/admin)
+      allow create, update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      
+      // Delete: Apenas o Dono pode se excluir (para encerrar conta)
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // 2. COLEÇÃO BOOKS
-    // Leitura liberada para autenticados. Escrita restrita a Admins.
+    // --- 2. REGRAS DO CHAT (ERA ISSO QUE FALTAVA) ---
+    match /chats/{chatId} {
+      // O dono do chat (usuário comum) ou o Admin podem ler e escrever no documento do chat
+      allow read, write: if isAuthenticated() && (request.auth.uid == chatId || isAdmin());
+
+      // Regras para as mensagens dentro do chat (Subcoleção)
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated() && (request.auth.uid == chatId || isAdmin());
+      }
+    }
+
+    // --- 3. REGRAS DE LIVROS ---
     match /books/{bookId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
-    // 3. COLEÇÃO LOANS (Empréstimos)
+    // --- 4. REGRAS DE EMPRÉSTIMOS ---
     match /loans/{loanId} {
-      // Ler: Se for o dono do empréstimo OU Admin
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
-      
-      // Criar: Qualquer autenticado (o app deve garantir que o userId gravado seja o correto)
-      allow create: if isAuthenticated(); 
-      
-      // Atualizar: Dono (ex: reservar/cancelar) OU Admin (ex: aprovar/devolver)
+      allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // 4. COLEÇÃO WAITLIST (Fila de Espera)
+    // --- 5. REGRAS DE WAITLIST ---
     match /waitlist/{entryId} {
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isAuthenticated();
       allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Bloqueia qualquer outra coisa não declarada acima
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
