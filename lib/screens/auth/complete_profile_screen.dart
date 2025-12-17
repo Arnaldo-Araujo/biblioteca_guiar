@@ -175,8 +175,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           );
 
                           await userProvider.completeRegistration(
-                            partialUser, 
-                            _imageFile != null ? File(_imageFile!.path) : null
+                            userModel: partialUser,
+                            imageFile: _imageFile != null ? File(_imageFile!.path) : null,
                           );
 
                           // Success! AuthWrapper or logic can handle it. 
