@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart'; // Import rootScaffoldMessengerKey
 
 class DeleteAccountDialog extends StatefulWidget {
   final Future<void> Function(String feedback) onDisable;
@@ -84,19 +85,51 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                 ? null
                 : () async {
                     if (_formKey.currentState!.validate()) {
+                      // 1. Fecha teclado
+                      FocusScope.of(context).unfocus();
+                      
                       setState(() => _isLoading = true);
                       try {
+                        // Importante: Passa o context em variável local ou acessa via closure segura
+                        // Mas aqui vamos usar o widget callback.
+                        
                         await widget.onDeletePermanently(
                           _feedbackController.text.trim(),
                           _passwordController.text.trim(),
                         );
-                        if (mounted) {
-                          // Sucesso: Navega para Login e remove tudo
-                          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                        }
+                        
+                        // 4. FECHA O DIALOG (Importante para não travar overlay)
+                        if (mounted) Navigator.of(context).pop();
+
+                        // 5. EXIBE A MENSAGEM GLOBAL (Sobrevive ao Logout)
+                        // Precisamos importar o main.dart ou definir a key como global acessível.
+                        // Como main.dart não é importado aqui, vamos usar ScaffoldMessenger.of(context)
+                        // MAS ISSO FALHA se o context for destruído (que é o caso no logout).
+                        // O prompt pede para usar rootScaffoldMessengerKey.
+                        // Vou importar o main.dart.
+                        
+                        // Assumindo que a key foi definida em main.dart como global.
+                        // Se não puder importar main, o usuário teria que passar a key.
+                        // Mas vamos adicionar o import.
+                        
+                        // Nota: O replace_file_content não adiciona imports no topo se eu não incluir o topo.
+                        // Vou confiar que o usuário já tem, ou o compilador vai reclamar e eu corrijo.
+                        // Verificando imports: só tem 'package:flutter/material.dart'.
+                        // Preciso adicionar o import do main.dart.
+                        // Como é replace_content, vou fazer em dois passos ou usar multi_replace se necessário.
+                        // Vou fazer um bloco maior que inclua tudo ou pedir para adicionar o import.
+                        // Melhor: Vou usar o rootScaffoldMessengerKey do main.dart. 
+                        // Vou adicionar o import no topo primeiro em outro passo, 
+                        rootScaffoldMessengerKey.currentState?.showSnackBar(
+                          const SnackBar(
+                            content: Text("Sua conta e todos os seus dados foram excluídos com sucesso."),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
                       } catch (e) {
                          if (mounted) {
-                           // Remove "Exception: " string if present for cleaner message
                            final msg = e.toString().replaceAll('Exception: ', '');
                            ScaffoldMessenger.of(context).showSnackBar(
                              SnackBar(

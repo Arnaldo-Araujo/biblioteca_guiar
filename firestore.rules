@@ -27,20 +27,14 @@ service cloud.firestore {
 
     // Regra: O usuário só pode escrever na coleção 'users' se o ID do documento for igual ao seu UID.
     match /users/{userId} {
-      // Permite ler detalhes (GET) apenas se for o dono ou admin
-      allow get: if isOwner(userId) || isAdmin();
+      // Leitura
+      allow list: if request.auth != null;
+      allow get: if request.auth != null && (request.auth.uid == userId || isAdmin());
       
-      // Permite listar/pesquisar (LIST) se estiver autenticado (Necessário para verificar unicidade de CPF)
-      allow list: if isAuthenticated();
-
-      // (CREATE) Criar: Apenas o dono ou admin
-      allow create: if isOwner(userId) || isAdmin();
-
-      // (UPDATE) Editar: Dono pode editar a si mesmo. Admin pode editar APENAS se o alvo NÃO for Admin.
-      // Isso impede que um admin delete/desative outro admin.
-      allow update: if isOwner(userId) || (isAdmin() && resource.data.isAdmin == false);
+      // Escrita (Create/Update)
+      allow create, update: if request.auth != null && (request.auth.uid == userId || isAdmin());
       
-      // (DELETE) Excluir: Permite que o usuário exclua sua própria conta
+      // Exclusão (Delete) - EXPLÍCITA
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
