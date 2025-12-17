@@ -12,6 +12,12 @@ service firebase.storage {
       allow write, delete: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Regra adicinal solicitada para 'user_photos'
+    match /user_photos/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Regra para capas de livros
     // Caminho: book_covers/{fileName}
     match /book_covers/{fileName} {

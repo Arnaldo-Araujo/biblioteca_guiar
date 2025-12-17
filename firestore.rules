@@ -39,6 +39,9 @@ service cloud.firestore {
       // (UPDATE) Editar: Dono pode editar a si mesmo. Admin pode editar APENAS se o alvo NÃO for Admin.
       // Isso impede que um admin delete/desative outro admin.
       allow update: if isOwner(userId) || (isAdmin() && resource.data.isAdmin == false);
+      
+      // (DELETE) Excluir: Permite que o usuário exclua sua própria conta
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
     // 2. COLEÇÃO BOOKS

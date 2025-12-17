@@ -16,31 +16,56 @@ class DeleteAccountDialog extends StatefulWidget {
 
 class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
   final _feedbackController = TextEditingController();
-  final _passwordController = TextEditingController(); // Only for permanent delete
-  final _formKey = GlobalKey<FormState>();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>(); // Key for the permanent delete form
   
   bool _showPasswordInput = false;
   bool _isLoading = false;
 
   @override
+  void dispose() {
+    _feedbackController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // If we are showing password input, it means user selected permanent delete
+    // VIEW 2: Confirmação de Exclusão (Senha)
     if (_showPasswordInput) {
       return AlertDialog(
-        title: const Text('Confirmar Exclusão Permanente', style: TextStyle(color: Colors.red)),
+        scrollable: true,
+        title: const Text('Confirmar Exclusão', style: TextStyle(color: Colors.red)),
         content: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                  'ATENÇÃO: Esta ação é IRREVERSÍVEL. Todos os seus dados serão apagados para sempre.'),
+                'Esta ação é irreversível. Todos os seus dados serão apagados.',
+                style: TextStyle(fontSize: 13),
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Digite sua senha para confirmar'),
+                decoration: const InputDecoration(
+                  labelText: 'Senha Atual',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
                 obscureText: true,
-                validator: (v) => v!.isEmpty ? 'Senha obrigatória' : null,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Digite sua senha para continuar.';
+                  }
+                  return null;
+                },
+                onChanged: (val) {
+                  // Rebuild to update button state if we were using a listenable, 
+                  // but form validation happens on press usually.
+                  // For "O botão ... só deve chamar ... se a senha não estiver vazia",
+                  // keeping the validator is sufficient combined with form validate().
+                },
               ),
             ],
           ),
@@ -48,10 +73,13 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
         actions: [
           TextButton(
             onPressed: _isLoading ? null : () => setState(() => _showPasswordInput = false),
-            child: const Text('Voltar'),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: _isLoading
                 ? null
                 : () async {
@@ -62,92 +90,96 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                           _feedbackController.text.trim(),
                           _passwordController.text.trim(),
                         );
-                        if (mounted) Navigator.pop(context); // Success
+                        if (mounted) {
+                          // Sucesso: Navega para Login e remove tudo
+                          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                        }
                       } catch (e) {
                          if (mounted) {
+                           // Remove "Exception: " string if present for cleaner message
+                           final msg = e.toString().replaceAll('Exception: ', '');
                            ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(content: Text('Erro: ${e.toString().replaceAll('Exception: ', '')}')),
+                             SnackBar(
+                               content: Text('Erro: $msg'),
+                               backgroundColor: Colors.red,
+                             ),
                            );
+                           setState(() => _isLoading = false);
                          }
-                      } finally {
-                        if (mounted) setState(() => _isLoading = false);
                       }
                     }
                   },
-            child: _isLoading 
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
-              : const Text('EXCLUIR TUDO', style: TextStyle(color: Colors.white)),
+            child: _isLoading
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('EXCLUIR PERMANENTEMENTE'),
           ),
         ],
       );
     }
 
-    // Default View
+    // VIEW 1: Feedback e Opções
     return AlertDialog(
-      title: const Text('Tem certeza que deseja sair?'),
+      title: const Text('Deseja sair?'),
       content: SingleChildScrollView(
-         child: Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Sentiremos sua falta! Conte-nos o motivo da sua saída (obrigatório):'),
+            const Text('Conte-nos o motivo (obrigatório):'),
             const SizedBox(height: 10),
             TextField(
               controller: _feedbackController,
               maxLines: 3,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: 'Ex: Não estou usando o app...',
+                hintText: 'Ex: Não uso mais o app...',
               ),
             ),
             const SizedBox(height: 20),
             if (_isLoading)
-               const Center(child: CircularProgressIndicator())
-            else
-               Column(
-                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                 children: [
-                   ElevatedButton(
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: Colors.orange,
-                       foregroundColor: Colors.white,
-                     ),
-                     onPressed: () async {
-                       if (_feedbackController.text.trim().isEmpty) {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                             const SnackBar(content: Text('Por favor, informe o motivo.')));
-                         return;
-                       }
-                       setState(() => _isLoading = true);
-                       try {
-                         await widget.onDisable(_feedbackController.text.trim());
-                         if (mounted) Navigator.pop(context);
-                       } catch (e) {
-                         if (mounted) {
-                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(content: Text('Erro: ${e.toString()}')),
-                           );
-                         }
-                       } finally {
-                         if (mounted) setState(() => _isLoading = false);
-                       }
-                     },
-                     child: const Text('APENAS DESATIVAR (Mantém dados)'),
-                   ),
-                   const SizedBox(height: 8),
-                   TextButton(
-                     onPressed: () {
-                        if (_feedbackController.text.trim().isEmpty) {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                             const SnackBar(content: Text('Por favor, informe o motivo.')));
-                         return;
-                       }
-                       setState(() => _showPasswordInput = true);
-                     },
-                     child: const Text('Excluir Tudo Permanentemente', style: TextStyle(color: Colors.red)),
-                   ),
-                 ],
-               )
+              const Center(child: CircularProgressIndicator()),
+            if (!_isLoading) ...[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  if (_feedbackController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Por favor, informe o motivo.')),
+                    );
+                    return;
+                  }
+                  setState(() => _isLoading = true);
+                  try {
+                    await widget.onDisable(_feedbackController.text.trim());
+                    if (mounted) Navigator.pop(context); // Disable just logs out usually
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erro: ${e.toString()}')),
+                      );
+                      setState(() => _isLoading = false);
+                    }
+                  }
+                },
+                child: const Text('APENA DESATIVAR (Reversível)'),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () {
+                   if (_feedbackController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Por favor, informe o motivo.')),
+                    );
+                    return;
+                  }
+                  setState(() => _showPasswordInput = true);
+                },
+                child: const Text('Excluir Tudo Permanentemente (Perigoso)', style: TextStyle(color: Colors.red, fontSize: 12)),
+              ),
+            ],
           ],
         ),
       ),

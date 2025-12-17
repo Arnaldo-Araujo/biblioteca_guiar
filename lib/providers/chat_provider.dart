@@ -51,6 +51,20 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> assignAttendant(String chatId, UserModel attendant) async {
+    try {
+      await _firestore.collection('chats').doc(chatId).update({
+        'assignedToId': attendant.uid,
+        'assignedToName': attendant.nome,
+        'assignedToPhoto': attendant.photoUrl,
+      });
+      notifyListeners();
+    } catch (e) {
+      print("Error assigning attendant: $e");
+      rethrow;
+    }
+  }
+
   // 2. Get Messages Stream
   Stream<QuerySnapshot> getMessagesStream(String chatId) {
     return _firestore
