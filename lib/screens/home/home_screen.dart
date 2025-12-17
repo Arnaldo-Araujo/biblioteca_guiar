@@ -6,6 +6,7 @@ import '../../providers/user_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/custom_network_image.dart';
 import '../book/book_detail_screen.dart';
+import '../chat/chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -133,6 +134,27 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      floatingActionButton: !isAdmin
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                final user = userProvider.userModel;
+                if (user != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(
+                        chatId: user.uid,
+                        otherUserName: 'Fale Conosco',
+                      ),
+                    ),
+                  );
+                }
+              },
+              label: const Text('Fale Conosco'),
+              icon: const Icon(Icons.chat),
+              backgroundColor: Colors.green, // Identidade da biblioteca
+            )
+          : null,
     );
   }
 }
