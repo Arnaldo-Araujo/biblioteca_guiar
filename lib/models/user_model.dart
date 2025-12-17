@@ -70,4 +70,30 @@ class UserModel {
       photoUrl: data['photoUrl'],
     );
   }
+
+  UserModel copyWith({
+    String? uid,
+    String? nome,
+    String? email,
+    String? cpf,
+    String? telefone,
+    String? endereco,
+    bool? isAdmin,
+    bool? isHelper,
+    bool? isActive,
+    String? photoUrl,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      nome: nome ?? this.nome,
+      email: email ?? this.email,
+      cpf: cpf ?? this.cpf,
+      telefone: telefone ?? this.telefone,
+      endereco: endereco ?? this.endereco,
+      isAdmin: isAdmin ?? this.isAdmin,
+      isHelper: isHelper ?? this.isHelper,
+      isActive: isActive ?? this.isActive,
+      photoUrl: photoUrl ?? this.photoUrl,
+    );
+  }
 }
