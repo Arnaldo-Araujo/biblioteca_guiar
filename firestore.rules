@@ -59,6 +59,22 @@ service cloud.firestore {
       allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
+    // --- 5. REGRAS DE TICKETS (NOVA REGRA DE NEGÓCIO) ---
+    match /tickets/{ticketId} {
+      // Create: Usuários autenticados podem abrir tickets
+      allow create: if isAuthenticated();
+      
+      // Read/Update: 
+      // 1. Dono do ticket (userId)
+      // 2. Helper atribuído (assigneeId)
+      // 3. Admin
+      allow read, update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.assigneeId == request.auth.uid || 
+        isAdmin()
+      );
+    }
+
     // --- 5. REGRAS DE WAITLIST ---
     match /waitlist/{entryId} {
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
