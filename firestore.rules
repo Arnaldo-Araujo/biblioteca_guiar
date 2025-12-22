@@ -13,16 +13,36 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Verifica se é Admin (com proteção 'exists' para não quebrar se o user não existir)
+    // Verifica se é Admin (Legacy boolean OR Role 'ADMIN')
     function isAdmin() {
       return isAuthenticated() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+        (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ADMIN" ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "SUPER_ADMIN"
+        );
+    }
+
+    // Verifica se é SUPER ADMIN
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "SUPER_ADMIN";
     }
 
     // Obtém o churchId do usuário logado
     function getUserChurchId() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.churchId;
+    }
+    
+    // --- 0. REGRAS DE IGREJAS (MULTI-TENANCY) ---
+    match /churches/{churchId} {
+      // Leitura pública (para login/cadastro) ou autenticada
+      allow read: if true; 
+      
+      // Escrita APENAS Super Admin
+      allow write: if isSuperAdmin();
     }
 
     // --- 1. REGRAS DE USUÁRIOS ---
