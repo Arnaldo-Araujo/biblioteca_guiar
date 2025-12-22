@@ -179,11 +179,17 @@ class FirestoreService {
     await _db.collection('users').doc(targetUserId).update({'isActive': false});
   }
 
-  Stream<List<UserModel>> getAllUsersStream({bool includeInactive = false}) {
+  Stream<List<UserModel>> getAllUsersStream({bool includeInactive = false, String? churchId}) {
     Query query = _db.collection('users');
+    
     if (!includeInactive) {
       query = query.where('isActive', isEqualTo: true);
     }
+    
+    if (churchId != null) {
+      query = query.where('churchId', isEqualTo: churchId);
+    }
+    
     return query.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) => UserModel.fromDocument(doc)).toList();
     });
