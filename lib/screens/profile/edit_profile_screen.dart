@@ -58,16 +58,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final currentUser = userProvider.userModel!;
 
-    final updatedUser = UserModel(
-      uid: currentUser.uid,
+    final updatedUser = currentUser.copyWith(
       nome: _nameController.text.trim(),
-      email: currentUser.email,
-      cpf: currentUser.cpf,
       telefone: _phoneController.text.trim(),
       endereco: _addressController.text.trim(),
-      isAdmin: currentUser.isAdmin,
-      isHelper: currentUser.isHelper,
-      photoUrl: currentUser.photoUrl,
     );
 
     try {

@@ -316,7 +316,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             estado: _selectedUF,
                             cidade: _selectedCity,
                             churchId: finalChurchId,
-                            isAdmin: false,
+                            // role defaults to USER
                           );
 
                           await userProvider.completeRegistration(

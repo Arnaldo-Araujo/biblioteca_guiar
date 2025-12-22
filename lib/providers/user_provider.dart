@@ -350,7 +350,7 @@ class UserProvider with ChangeNotifier {
       );
 
       // 2. Desativar Soft Delete
-      await _firestoreService.softDeleteUser(user.uid, _userModel!.isAdmin);
+      await _firestoreService.softDeleteUser(user.uid, _userModel!.isAdmin); // isAdmin getter works
 
       // 3. Logout
       await signOut();
