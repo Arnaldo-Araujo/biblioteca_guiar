@@ -114,6 +114,12 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageBubble(MessageModel msg, bool isMe) {
     final timeStr = DateFormat('HH:mm').format(msg.timestamp.toDate());
 
+    // Dark Mode Contrast Fixes
+    // Sent: Dark Green, Received: Dark Grey (Charcoal)
+    final bubbleColor = isMe 
+        ? const Color(0xFF1B5E20) // Dark Green (Green 900)
+        : const Color(0xFF37474F); // Dark Blue Grey (Blue Grey 800)
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -121,7 +127,7 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isMe ? Colors.green[100] : Colors.grey[200],
+          color: bubbleColor,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),
@@ -134,12 +140,18 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Text(
               msg.text,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white, // Ensure white text for contrast
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               timeStr,
-              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.white70, // Slightly transparent white for time
+              ),
             ),
           ],
         ),
@@ -148,22 +160,28 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(10),
-      color: Colors.white,
+      // Use surface color or a dark neutral for dark mode
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: _messageController,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: 'Digite sua mensagem...',
+                hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.grey[100],
+                // input background
+                fillColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               textCapitalization: TextCapitalization.sentences,
