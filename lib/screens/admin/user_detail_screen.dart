@@ -67,17 +67,17 @@ class UserDetailScreen extends StatelessWidget {
               subtitle: const Text('Permite registrar empréstimos para terceiros'),
               value: user.isHelper,
               onChanged: (value) async {
-                final updatedUser = UserModel(
-                  uid: user.uid,
-                  nome: user.nome,
-                  email: user.email,
-                  cpf: user.cpf,
-                  telefone: user.telefone,
-                  endereco: user.endereco,
-                  isAdmin: user.isAdmin,
-                  isHelper: value,
-                  photoUrl: user.photoUrl,
-                );
+                // Logic for Helper Toggle
+                String newRole = user.role;
+                if (value) {
+                  // Promoting to Helper
+                  if (newRole == 'USER') newRole = 'HELPER';
+                } else {
+                  // Demoting from Helper
+                  if (newRole == 'HELPER') newRole = 'USER';
+                }
+
+                final updatedUser = user.copyWith(role: newRole);
 
                 try {
                   await userProvider.updateUser(updatedUser);
@@ -136,17 +136,17 @@ class UserDetailScreen extends StatelessWidget {
 
                 if (confirmed != true) return;
 
-                final updatedUser = UserModel(
-                  uid: user.uid,
-                  nome: user.nome,
-                  email: user.email,
-                  cpf: user.cpf,
-                  telefone: user.telefone,
-                  endereco: user.endereco,
-                  isAdmin: value,
-                  isHelper: user.isHelper,
-                  photoUrl: user.photoUrl,
-                );
+                // Logic for Admin Toggle
+                String newRole = user.role;
+                if (value) {
+                  // Promoting to Admin
+                  newRole = 'ADMIN';
+                } else {
+                  // Demoting from Admin
+                  if (newRole == 'ADMIN' || newRole == 'SUPER_ADMIN') newRole = 'USER';
+                }
+
+                final updatedUser = user.copyWith(role: newRole);
 
                 try {
                   await userProvider.updateUser(updatedUser);
