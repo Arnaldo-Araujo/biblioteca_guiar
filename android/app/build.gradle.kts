@@ -33,7 +33,7 @@ android {
 
     defaultConfig {
         applicationId = "br.com.i9android.biblioteca_guiar"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
