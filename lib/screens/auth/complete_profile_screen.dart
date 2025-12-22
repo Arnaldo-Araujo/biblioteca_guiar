@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cpf_cnpj_validator/cpf_validator.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
 
@@ -20,11 +22,66 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _nomeController = TextEditingController();
   final _cpfController = TextEditingController();
   final _telefoneController = TextEditingController();
-  final _enderecoController = TextEditingController();
+  final _enderecoController = TextEditingController(); // Detalhes (Rua, Nº)
+
+  // Location & Church State
+  String? _selectedUF;
+  String? _selectedCity;
+  String? _selectedChurchId;
+  
+  List<String> _cities = [];
+  bool _isLoadingCities = false;
+
+  final List<String> _ufs = [
+    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
+    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
+    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+  ];
+
+  // Specific Constants
+  static const String _targetUF = 'TO';
+  static const String _targetCity = 'Palmas';
+  static const String _churchName = 'Igreja Metodista de Palmas';
+  // You might want to store the ID in constants or fetch from DB if scalable
+  static const String _churchId = 'metodista_palmas'; 
 
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
+
+  Future<void> _fetchCities(String uf) async {
+    setState(() {
+      _isLoadingCities = true;
+      _cities = [];
+      _selectedCity = null;
+      _selectedChurchId = null; // Reset church if location changes
+    });
+
+    try {
+      final url = Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados/$uf/distritos');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        // Extract names and sort
+        final List<String> cityNames = data.map((e) => e['nome'].toString()).toList();
+        cityNames.sort();
+
+        setState(() {
+          _cities = cityNames;
+        });
+      } else {
+        print('Erro IBGE: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erro ao buscar cidades: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Falha ao carregar cidades. Verifique sua conexão.')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoadingCities = false);
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -93,6 +150,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+    final showChurchSelect = _selectedUF == _targetUF && _selectedCity == _targetCity;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Completar Perfil')),
@@ -145,12 +203,92 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               ),
               const SizedBox(height: 12),
               
+              // --- ENDEREÇO & LOCALIZAÇÃO ---
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'UF'),
+                      value: _selectedUF,
+                      items: _ufs.map((uf) {
+                        return DropdownMenuItem(value: uf, child: Text(uf));
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) _fetchCities(val);
+                        setState(() => _selectedUF = val);
+                      },
+                      validator: (v) => v == null ? 'Obrigatório' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(labelText: 'Cidade/Distrito'),
+                      value: _selectedCity,
+                      isExpanded: true,
+                      items: _cities.map((city) {
+                        return DropdownMenuItem(value: city, child: Text(city, overflow: TextOverflow.ellipsis));
+                      }).toList(),
+                      onChanged: _cities.isEmpty ? null : (val) {
+                         setState(() {
+                           _selectedCity = val;
+                           // Reset church if changed away from target
+                           if (!(_selectedUF == _targetUF && val == _targetCity)) {
+                             _selectedChurchId = null;
+                           }
+                         });
+                      },
+                       validator: (v) => v == null ? 'Obrigatório' : null,
+                       icon: _isLoadingCities 
+                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                         : const Icon(Icons.arrow_drop_down),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
               TextFormField(
                 controller: _enderecoController,
-                decoration: const InputDecoration(labelText: 'Endereço'),
+                decoration: const InputDecoration(
+                  labelText: 'Endereço (Rua, Nº, Bairro)',
+                  hintText: 'Ex: Rua 10, Qd 2, Lote 5',
+                ),
                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
               ),
-              
+              const SizedBox(height: 12),
+
+              // --- LOGICA DA IGREJA ---
+              if (showChurchSelect)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Qual sua igreja?',
+                      border: OutlineInputBorder(),
+                      fillColor: Color(0xFFE8F5E9), // Light Green hint
+                      filled: true,
+                    ),
+                    value: _selectedChurchId,
+                    items: const [
+                       DropdownMenuItem(
+                         value: _churchId, 
+                         child: Text(_churchName, style: TextStyle(fontWeight: FontWeight.bold))
+                       ),
+                       DropdownMenuItem(
+                         value: 'OUTRA', 
+                         child: Text('Outras / Nenhuma')
+                       ),
+                    ],
+                    onChanged: (val) {
+                      setState(() => _selectedChurchId = val);
+                    },
+                    validator: (v) => v == null ? 'Por favor, selecione uma opção' : null,
+                  ),
+                ),
+
               const SizedBox(height: 30),
               
               if (_isLoading || userProvider.isLoading)
@@ -163,6 +301,10 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       if (_formKey.currentState!.validate()) {
                         setState(() => _isLoading = true);
                         try {
+                          // Tratamento do churchId
+                          // Se for OUTRA, salvamos como null no banco (conforme requisito)
+                          final finalChurchId = _selectedChurchId == 'OUTRA' ? null : _selectedChurchId;
+
                           // Assemble partial user model
                           final partialUser = UserModel(
                             uid: '', // Provider will fill this from Auth
@@ -171,6 +313,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             cpf: _cpfController.text.trim(),
                             telefone: _telefoneController.text.trim(),
                             endereco: _enderecoController.text.trim(),
+                            estado: _selectedUF,
+                            cidade: _selectedCity,
+                            churchId: finalChurchId,
                             isAdmin: false,
                           );
 
