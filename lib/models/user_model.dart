@@ -27,13 +27,8 @@ class UserModel {
   /// Endereço físico do usuário.
   final String endereco;
 
-  /// Flag que indica privilégios de Administrador.
-  final bool isAdmin;
-  
-  /// Flag que indica se o usuário é um "Ajudante" (pode receber chamados).
-  final bool isHelper;
-
-  /// Flag para "Soft Delete". Se false, o usuário está "desativado" mas não excluído.
+  /// Flag que indica se o usuário está ativo no sistema.
+  /// Se false, o usuário está "desativado" mas não excluído.
   final bool isActive;
 
   /// URL da foto de perfil no Firebase Storage (pode ser null).
@@ -48,6 +43,15 @@ class UserModel {
   /// ID da igreja vinculada (pode ser null).
   final String? churchId;
 
+  /// Papel do usuário no sistema (Role).
+  /// Valores: 'SUPER_ADMIN', 'ADMIN', 'HELPER', 'USER'
+  final String role;
+
+  /// Getters de conveniência para manter compatibilidade e lógica limpa
+  bool get isSuperAdmin => role == 'SUPER_ADMIN';
+  bool get isAdmin => role == 'ADMIN' || role == 'SUPER_ADMIN';
+  bool get isHelper => role == 'HELPER';
+
   /// Construtor principal.
   UserModel({
     required this.uid,
@@ -56,8 +60,7 @@ class UserModel {
     required this.cpf,
     required this.telefone,
     required this.endereco,
-    required this.isAdmin,
-    this.isHelper = false,
+    this.role = 'USER', // Default role
     this.isActive = true, // Default to true
     this.photoUrl,
     this.estado,
@@ -75,8 +78,9 @@ class UserModel {
       'cpf': cpf,
       'telefone': telefone,
       'endereco': endereco,
-      'isAdmin': isAdmin,
-      'isHelper': isHelper,
+      'role': role,
+      'isAdmin': isAdmin, // Persist for legacy compatibility/indexes
+      'isHelper': isHelper, // Persist for legacy compatibility/indexes
       'isActive': isActive,
       'photoUrl': photoUrl,
       'estado': estado,
@@ -88,6 +92,15 @@ class UserModel {
   /// Cria uma instância de UserModel a partir de um Map.
   /// Útil ao ler dados genéricos.
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    // Logic to migrate/infer role from legacy booleans if role doesn't exist
+    String inferredRole = map['role'] ?? 'USER';
+    
+    // If role is undefined/USER but isAdmin is explicitly true (legacy data)
+    if (map['role'] == null) {
+      if (map['isAdmin'] == true) inferredRole = 'ADMIN';
+      else if (map['isHelper'] == true) inferredRole = 'HELPER';
+    }
+
     return UserModel(
       uid: map['uid'] ?? '',
       nome: map['nome'] ?? '',
@@ -95,8 +108,7 @@ class UserModel {
       cpf: map['cpf'] ?? '',
       telefone: map['telefone'] ?? '',
       endereco: map['endereco'] ?? '',
-      isAdmin: map['isAdmin'] ?? false,
-      isHelper: map['isHelper'] ?? false,
+      role: inferredRole,
       isActive: map['isActive'] ?? true, // Default true for existing docs
       photoUrl: map['photoUrl'],
       estado: map['estado'],
@@ -109,6 +121,14 @@ class UserModel {
   /// Extrai o ID do documento para preencher o campo 'uid'.
   factory UserModel.fromDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    
+    // Logic to migrate/infer role
+    String inferredRole = data['role'] ?? 'USER';
+    if (data['role'] == null) {
+      if (data['isAdmin'] == true) inferredRole = 'ADMIN';
+      else if (data['isHelper'] == true) inferredRole = 'HELPER';
+    }
+
     return UserModel(
       uid: doc.id, // O ID do doc é o UID do usuário
       nome: data['nome'] ?? '',
@@ -116,8 +136,7 @@ class UserModel {
       cpf: data['cpf'] ?? '',
       telefone: data['telefone'] ?? '',
       endereco: data['endereco'] ?? '',
-      isAdmin: data['isAdmin'] ?? false,
-      isHelper: data['isHelper'] ?? false,
+      role: inferredRole,
       isActive: data['isActive'] ?? true, // Default true
       photoUrl: data['photoUrl'],
       estado: data['estado'],
@@ -135,8 +154,7 @@ class UserModel {
     String? cpf,
     String? telefone,
     String? endereco,
-    bool? isAdmin,
-    bool? isHelper,
+    String? role,
     bool? isActive,
     String? photoUrl,
     String? estado,
@@ -150,8 +168,7 @@ class UserModel {
       cpf: cpf ?? this.cpf,
       telefone: telefone ?? this.telefone,
       endereco: endereco ?? this.endereco,
-      isAdmin: isAdmin ?? this.isAdmin,
-      isHelper: isHelper ?? this.isHelper,
+      role: role ?? this.role,
       isActive: isActive ?? this.isActive,
       photoUrl: photoUrl ?? this.photoUrl,
       estado: estado ?? this.estado,
