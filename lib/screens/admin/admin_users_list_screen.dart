@@ -5,16 +5,18 @@ import '../../widgets/custom_network_image.dart';
 import 'user_detail_dossier_screen.dart';
 
 class AdminUsersListScreen extends StatelessWidget {
-  const AdminUsersListScreen({super.key});
+  final String? churchId;
+
+  const AdminUsersListScreen({super.key, this.churchId});
 
   @override
   Widget build(BuildContext context) {
     final firestoreService = FirestoreService();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Gestão de Usuários')),
+      appBar: AppBar(title: Text(churchId != null ? 'Usuários da Igreja' : 'Gestão de Usuários')),
       body: StreamBuilder<List<UserModel>>(
-        stream: firestoreService.getAllUsersStream(),
+        stream: firestoreService.getAllUsersStream(churchId: churchId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
