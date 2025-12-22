@@ -20,6 +20,11 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
+    // Obtém o churchId do usuário logado
+    function getUserChurchId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.churchId;
+    }
+
     // --- 1. REGRAS DE USUÁRIOS ---
     match /users/{userId} {
       // List: Qualquer logado pode listar (para validar CPF)
@@ -46,9 +51,17 @@ service cloud.firestore {
       }
     }
 
-    // --- 3. REGRAS DE LIVROS ---
+    // --- 3. REGRAS DE LIVROS (BIBLIOTECA SEGREGADA) ---
     match /books/{bookId} {
-      allow read: if isAuthenticated();
+      // Leitura permitida APENAS se:
+      // 1. O usuário for Admin (vê de todas as igrejas)
+      // 2. O churchId do livro for IGUAL ao churchId do usuário
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        resource.data.churchId == getUserChurchId()
+      );
+      
+      // Escrita apenas para Admin (por enquanto)
       allow write: if isAdmin();
     }
 

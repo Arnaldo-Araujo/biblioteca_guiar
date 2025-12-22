@@ -278,15 +278,7 @@ class UserProvider with ChangeNotifier {
       String photoUrl = await _storageService.uploadUserPhoto(imageFile, _userModel!.uid);
       
       // 2. Update User Model
-      UserModel updatedUser = UserModel(
-        uid: _userModel!.uid,
-        nome: _userModel!.nome,
-        email: _userModel!.email,
-        cpf: _userModel!.cpf,
-        telefone: _userModel!.telefone,
-        endereco: _userModel!.endereco,
-        isAdmin: _userModel!.isAdmin,
-        isHelper: _userModel!.isHelper,
+      UserModel updatedUser = _userModel!.copyWith(
         photoUrl: photoUrl,
       );
       
@@ -311,15 +303,11 @@ class UserProvider with ChangeNotifier {
         photoUrl = await _storageService.uploadUserPhoto(imageFile, updatedUser.uid);
       }
 
-      final userToSave = UserModel(
-        uid: updatedUser.uid,
-        nome: updatedUser.nome,
-        email: updatedUser.email,
-        cpf: updatedUser.cpf,
-        telefone: updatedUser.telefone,
-        endereco: updatedUser.endereco,
-        isAdmin: updatedUser.isAdmin,
-        isHelper: updatedUser.isHelper,
+      // Use copyWith to ensure all fields are preserved or updated correctly
+      // Note: 'updatedUser' passed in usually comes from the UI form. 
+      // If the UI constructs a partial model, we should be careful.
+      // But assuming updatedUser has the latest intended values for everything editable:
+      final userToSave = updatedUser.copyWith(
         photoUrl: photoUrl,
       );
 
