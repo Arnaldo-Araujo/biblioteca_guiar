@@ -39,6 +39,15 @@ class UserModel {
   /// URL da foto de perfil no Firebase Storage (pode ser null).
   final String? photoUrl;
 
+  /// Estado (UF) do usuário.
+  final String? estado;
+  
+  /// Cidade/Distrito do usuário.
+  final String? cidade;
+  
+  /// ID da igreja vinculada (pode ser null).
+  final String? churchId;
+
   /// Construtor principal.
   UserModel({
     required this.uid,
@@ -51,6 +60,9 @@ class UserModel {
     this.isHelper = false,
     this.isActive = true, // Default to true
     this.photoUrl,
+    this.estado,
+    this.cidade,
+    this.churchId,
   });
 
   /// Converte o objeto para um Map<String, dynamic>.
@@ -67,6 +79,9 @@ class UserModel {
       'isHelper': isHelper,
       'isActive': isActive,
       'photoUrl': photoUrl,
+      'estado': estado,
+      'cidade': cidade,
+      'churchId': churchId,
     };
   }
 
@@ -84,6 +99,9 @@ class UserModel {
       isHelper: map['isHelper'] ?? false,
       isActive: map['isActive'] ?? true, // Default true for existing docs
       photoUrl: map['photoUrl'],
+      estado: map['estado'],
+      cidade: map['cidade'],
+      churchId: map['churchId'],
     );
   }
 
@@ -102,6 +120,9 @@ class UserModel {
       isHelper: data['isHelper'] ?? false,
       isActive: data['isActive'] ?? true, // Default true
       photoUrl: data['photoUrl'],
+      estado: data['estado'],
+      cidade: data['cidade'],
+      churchId: data['churchId'],
     );
   }
 
@@ -118,6 +139,9 @@ class UserModel {
     bool? isHelper,
     bool? isActive,
     String? photoUrl,
+    String? estado,
+    String? cidade,
+    String? churchId,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -130,6 +154,9 @@ class UserModel {
       isHelper: isHelper ?? this.isHelper,
       isActive: isActive ?? this.isActive,
       photoUrl: photoUrl ?? this.photoUrl,
+      estado: estado ?? this.estado,
+      cidade: cidade ?? this.cidade,
+      churchId: churchId ?? this.churchId,
     );
   }
 }
