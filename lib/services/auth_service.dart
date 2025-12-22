@@ -33,8 +33,7 @@ class AuthService {
           cpf: userModel.cpf,
           telefone: userModel.telefone,
           endereco: userModel.endereco,
-          isAdmin: userModel.isAdmin,
-          isHelper: userModel.isHelper,
+          role: userModel.role, // Preserve role
           photoUrl: userModel.photoUrl,
         );
 

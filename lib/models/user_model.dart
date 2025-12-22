@@ -27,13 +27,8 @@ class UserModel {
   /// Endereço físico do usuário.
   final String endereco;
 
-  /// Flag que indica privilégios de Administrador.
-  final bool isAdmin;
-  
-  /// Flag que indica se o usuário é um "Ajudante" (pode receber chamados).
-  final bool isHelper;
-
-  /// Flag para "Soft Delete". Se false, o usuário está "desativado" mas não excluído.
+  /// Flag que indica se o usuário está ativo no sistema.
+  /// Se false, o usuário está "desativado" mas não excluído.
   final bool isActive;
 
   /// URL da foto de perfil no Firebase Storage (pode ser null).
@@ -84,8 +79,8 @@ class UserModel {
       'telefone': telefone,
       'endereco': endereco,
       'role': role,
-      'isAdmin': isAdmin, // Persist for legacy/safety check if needed usually not needed but good for querying if indexes rely on it
-      'isHelper': isHelper, // Persist for legacy
+      'isAdmin': isAdmin, // Persist for legacy compatibility/indexes
+      'isHelper': isHelper, // Persist for legacy compatibility/indexes
       'isActive': isActive,
       'photoUrl': photoUrl,
       'estado': estado,
