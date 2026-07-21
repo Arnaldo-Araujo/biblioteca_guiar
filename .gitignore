@@ -60,3 +60,4 @@ firebase_options.dart
 **/local.properties
 android/build_log_4.txt
 android/build_log.txt
+**/.omc/
