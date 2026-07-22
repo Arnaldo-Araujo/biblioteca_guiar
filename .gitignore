@@ -61,3 +61,8 @@ firebase_options.dart
 android/build_log_4.txt
 android/build_log.txt
 **/.omc/
+
+# Antigravity Configurations
+**/.agents/
+**/.vscode/
+antigravity.config.json

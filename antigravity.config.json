@@ -1,0 +1,22 @@
+{
+  "agentDirectories": [
+    "./.agents"
+  ],
+  "agents": {
+    "analista": "./.agents/analista",
+    "arquiteto": "./.agents/arquiteto",
+    "dba": "./.agents/dba",
+    "desenvolvedor": "./.agents/desenvolvedor",
+    "devops": "./.agents/devops",
+    "documentador": "./.agents/documentador",
+    "gerente": "./.agents/gerente",
+    "pesquisador": "./.agents/pesquisador",
+    "product-owner": "./.agents/product-owner",
+    "qa-tester": "./.agents/qa-tester",
+    "revisor": "./.agents/revisor",
+    "scrum-master": "./.agents/scrum-master",
+    "seguranca": "./.agents/seguranca",
+    "tech-lead": "./.agents/tech-lead",
+    "ui-designer": "./.agents/ui-designer"
+  }
+}
