@@ -2,7 +2,11 @@ name: biblioteca_guiar
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
+<<<<<<< HEAD
 version: 1.0.1+2
+=======
+version: 1.0.2+2
+>>>>>>> e6fb102bbb13bfd1b366e2327299a53d38b15c1c
 
 environment:
   sdk: ^3.8.1
