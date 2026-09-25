@@ -67,3 +67,4 @@ android/build_log.txt
 **/.agents/
 **/.vscode/
 antigravity.config.json
+**/backend_quarkus/
