@@ -17,7 +17,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     // Fetch data when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<DashboardProvider>(context, listen: false).fetchDashboardData();
+      Provider.of<DashboardProvider>(
+        context,
+        listen: false,
+      ).fetchDashboardData();
     });
   }
 
@@ -39,21 +42,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Summary Cards
                     Row(
                       children: [
-                        Expanded(child: _buildSummaryCard('Livros', dashboard.totalBooks.toString(), Icons.book, Colors.blue)),
+                        Expanded(
+                          child: _buildSummaryCard(
+                            'Livros',
+                            dashboard.totalBooks.toString(),
+                            Icons.book,
+                            Colors.blue,
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildSummaryCard('Usuários', dashboard.totalUsers.toString(), Icons.people, Colors.orange)),
+                        Expanded(
+                          child: _buildSummaryCard(
+                            'Usuários',
+                            dashboard.totalUsers.toString(),
+                            Icons.people,
+                            Colors.orange,
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildSummaryCard('Empréstimos', dashboard.totalActiveLoans.toString(), Icons.bookmark, Colors.green)),
+                        Expanded(
+                          child: _buildSummaryCard(
+                            'Empréstimos',
+                            dashboard.totalActiveLoans.toString(),
+                            Icons.bookmark,
+                            Colors.green,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
 
                     // Pie Chart Section
-                    const Text('Saúde dos Empréstimos', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Saúde dos Empréstimos',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Card(
                       elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: LoanStatusPieChart(
@@ -66,11 +98,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 24),
 
                     // Bar Chart Section
-                    const Text('Top Categorias', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Top Categorias',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Card(
                       elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: CategoryBarChart(
@@ -86,19 +126,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
           Text(title, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
         ],
       ),

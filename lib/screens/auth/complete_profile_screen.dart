@@ -17,7 +17,7 @@ class CompleteProfileScreen extends StatefulWidget {
 
 class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Fields for Step 2
   final _nomeController = TextEditingController();
   final _cpfController = TextEditingController();
@@ -28,14 +28,38 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   String? _selectedUF;
   String? _selectedCity;
   String? _selectedChurchId;
-  
+
   List<String> _cities = [];
   bool _isLoadingCities = false;
 
   final List<String> _ufs = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
-    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+    'AC',
+    'AL',
+    'AP',
+    'AM',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MT',
+    'MS',
+    'MG',
+    'PA',
+    'PB',
+    'PR',
+    'PE',
+    'PI',
+    'RJ',
+    'RN',
+    'RS',
+    'RO',
+    'RR',
+    'SC',
+    'SP',
+    'SE',
+    'TO',
   ];
 
   // Specific Constants
@@ -43,7 +67,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   static const String _targetCity = 'Palmas';
   static const String _churchName = 'Igreja Metodista de Palmas';
   // You might want to store the ID in constants or fetch from DB if scalable
-  static const String _churchId = 'metodista_palmas'; 
+  static const String _churchId = 'metodista_palmas';
 
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
@@ -58,13 +82,17 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     });
 
     try {
-      final url = Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados/$uf/distritos');
+      final url = Uri.parse(
+        'https://servicodados.ibge.gov.br/api/v1/localidades/estados/$uf/distritos',
+      );
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         // Extract names and sort
-        final List<String> cityNames = data.map((e) => e['nome'].toString()).toList();
+        final List<String> cityNames = data
+            .map((e) => e['nome'].toString())
+            .toList();
         cityNames.sort();
 
         setState(() {
@@ -76,7 +104,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     } catch (e) {
       print('Erro ao buscar cidades: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Falha ao carregar cidades. Verifique sua conexão.')),
+        const SnackBar(
+          content: Text('Falha ao carregar cidades. Verifique sua conexão.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoadingCities = false);
@@ -138,7 +168,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             onPressed: () {
               Navigator.pop(context); // Close dialog
               // Navigate back to Login as user was deleted
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/', (route) => false);
             },
             child: const Text('Voltar ao Login'),
           ),
@@ -150,7 +182,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    final showChurchSelect = _selectedUF == _targetUF && _selectedCity == _targetCity;
+    final showChurchSelect =
+        _selectedUF == _targetUF && _selectedCity == _targetCity;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Completar Perfil')),
@@ -166,9 +199,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: _imageFile != null ? FileImage(File(_imageFile!.path)) : null,
+                  backgroundImage: _imageFile != null
+                      ? FileImage(File(_imageFile!.path))
+                      : null,
                   child: _imageFile == null
-                      ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
+                      ? const Icon(
+                          Icons.add_a_photo,
+                          size: 50,
+                          color: Colors.grey,
+                        )
                       : null,
                 ),
               ),
@@ -182,19 +221,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 12),
-              
+
               TextFormField(
                 controller: _cpfController,
                 decoration: const InputDecoration(labelText: 'CPF'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Campo obrigatório';
+                  if (value == null || value.isEmpty)
+                    return 'Campo obrigatório';
                   if (!CPFValidator.isValid(value)) return 'CPF inválido';
                   return null;
                 },
               ),
               const SizedBox(height: 12),
-              
+
               TextFormField(
                 controller: _telefoneController,
                 decoration: const InputDecoration(labelText: 'Telefone'),
@@ -202,7 +242,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 12),
-              
+
               // --- ENDEREÇO & LOCALIZAÇÃO ---
               Row(
                 children: [
@@ -210,7 +250,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     flex: 1,
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(labelText: 'UF'),
-                      value: _selectedUF,
+                      initialValue: _selectedUF,
                       items: _ufs.map((uf) {
                         return DropdownMenuItem(value: uf, child: Text(uf));
                       }).toList(),
@@ -225,25 +265,37 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   Expanded(
                     flex: 2,
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Cidade/Distrito'),
-                      value: _selectedCity,
+                      decoration: const InputDecoration(
+                        labelText: 'Cidade/Distrito',
+                      ),
+                      initialValue: _selectedCity,
                       isExpanded: true,
                       items: _cities.map((city) {
-                        return DropdownMenuItem(value: city, child: Text(city, overflow: TextOverflow.ellipsis));
+                        return DropdownMenuItem(
+                          value: city,
+                          child: Text(city, overflow: TextOverflow.ellipsis),
+                        );
                       }).toList(),
-                      onChanged: _cities.isEmpty ? null : (val) {
-                         setState(() {
-                           _selectedCity = val;
-                           // Reset church if changed away from target
-                           if (!(_selectedUF == _targetUF && val == _targetCity)) {
-                             _selectedChurchId = null;
-                           }
-                         });
-                      },
-                       validator: (v) => v == null ? 'Obrigatório' : null,
-                       icon: _isLoadingCities 
-                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
-                         : const Icon(Icons.arrow_drop_down),
+                      onChanged: _cities.isEmpty
+                          ? null
+                          : (val) {
+                              setState(() {
+                                _selectedCity = val;
+                                // Reset church if changed away from target
+                                if (!(_selectedUF == _targetUF &&
+                                    val == _targetCity)) {
+                                  _selectedChurchId = null;
+                                }
+                              });
+                            },
+                      validator: (v) => v == null ? 'Obrigatório' : null,
+                      icon: _isLoadingCities
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.arrow_drop_down),
                     ),
                   ),
                 ],
@@ -271,26 +323,30 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       fillColor: Color(0xFFE8F5E9), // Light Green hint
                       filled: true,
                     ),
-                    value: _selectedChurchId,
+                    initialValue: _selectedChurchId,
                     items: const [
-                       DropdownMenuItem(
-                         value: _churchId, 
-                         child: Text(_churchName, style: TextStyle(fontWeight: FontWeight.bold))
-                       ),
-                       DropdownMenuItem(
-                         value: 'OUTRA', 
-                         child: Text('Outras / Nenhuma')
-                       ),
+                      DropdownMenuItem(
+                        value: _churchId,
+                        child: Text(
+                          _churchName,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'OUTRA',
+                        child: Text('Outras / Nenhuma'),
+                      ),
                     ],
                     onChanged: (val) {
                       setState(() => _selectedChurchId = val);
                     },
-                    validator: (v) => v == null ? 'Por favor, selecione uma opção' : null,
+                    validator: (v) =>
+                        v == null ? 'Por favor, selecione uma opção' : null,
                   ),
                 ),
 
               const SizedBox(height: 30),
-              
+
               if (_isLoading || userProvider.isLoading)
                 const CircularProgressIndicator()
               else
@@ -303,7 +359,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         try {
                           // Tratamento do churchId
                           // Se for OUTRA, salvamos como null no banco (conforme requisito)
-                          final finalChurchId = _selectedChurchId == 'OUTRA' ? null : _selectedChurchId;
+                          final finalChurchId = _selectedChurchId == 'OUTRA'
+                              ? null
+                              : _selectedChurchId;
 
                           // Assemble partial user model
                           final partialUser = UserModel(
@@ -321,31 +379,41 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
                           await userProvider.completeRegistration(
                             userModel: partialUser,
-                            imageFile: _imageFile != null ? File(_imageFile!.path) : null,
+                            imageFile: _imageFile != null
+                                ? File(_imageFile!.path)
+                                : null,
                           );
 
-                          // Success! AuthWrapper or logic can handle it. 
+                          // Success! AuthWrapper or logic can handle it.
                           // We also navigate explicitly to / to be sure.
                           if (mounted) {
-                            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                            Navigator.of(
+                              context,
+                            ).pushNamedAndRemoveUntil('/', (route) => false);
                           }
-                          
                         } catch (e) {
                           if (mounted) {
-                             if (e.toString().contains("CPF já possui")) {
-                               _handleError(e.toString().replaceAll('Exception: ', ''));
-                             } else {
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 SnackBar(content: Text("Erro: ${e.toString()}"), backgroundColor: Colors.red),
-                               );
-                             }
+                            if (e.toString().contains("CPF já possui")) {
+                              _handleError(
+                                e.toString().replaceAll('Exception: ', ''),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Erro: ${e.toString()}"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           }
                         } finally {
                           if (mounted) setState(() => _isLoading = false);
                         }
                       }
                     },
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                     child: const Text('FINALIZAR CADASTRO'),
                   ),
                 ),

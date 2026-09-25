@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../models/message_model.dart';
-import '../../models/user_model.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -30,7 +29,10 @@ class _ChatScreenState extends State<ChatScreen> {
     // Mark as read when entering (if Admin)
     final user = Provider.of<UserProvider>(context, listen: false).userModel;
     if (user != null && user.isAdmin) {
-      Provider.of<ChatProvider>(context, listen: false).markChatAsRead(widget.chatId);
+      Provider.of<ChatProvider>(
+        context,
+        listen: false,
+      ).markChatAsRead(widget.chatId);
     }
   }
 
@@ -45,7 +47,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (user == null) return;
 
     _messageController.clear();
-    
+
     try {
       await chatProvider.sendMessage(
         text: text,
@@ -53,9 +55,9 @@ class _ChatScreenState extends State<ChatScreen> {
         sender: user,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao enviar mensagem: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao enviar mensagem: $e')));
     }
   }
 
@@ -66,9 +68,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUser = userProvider.userModel;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.otherUserName),
-      ),
+      appBar: AppBar(title: Text(widget.otherUserName)),
       body: Column(
         children: [
           Expanded(
@@ -78,7 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                
+
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(
                     child: Text(
@@ -89,12 +89,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
 
                 final docs = snapshot.data!.docs;
-                final messages = docs.map((doc) => MessageModel.fromDocument(doc)).toList();
+                final messages = docs
+                    .map((doc) => MessageModel.fromDocument(doc))
+                    .toList();
 
                 return ListView.builder(
                   reverse: true, // Show newest at button
                   itemCount: messages.length,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 20,
+                  ),
                   itemBuilder: (context, index) {
                     final msg = messages[index];
                     final isMe = msg.senderId == currentUser?.uid;
@@ -116,7 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Dark Mode Contrast Fixes
     // Sent: Dark Green, Received: Dark Grey (Charcoal)
-    final bubbleColor = isMe 
+    final bubbleColor = isMe
         ? const Color(0xFF1B5E20) // Dark Green (Green 900)
         : const Color(0xFF37474F); // Dark Blue Grey (Blue Grey 800)
 
@@ -125,18 +130,26 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         decoration: BoxDecoration(
           color: bubbleColor,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),
-            bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(0),
-            bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(12),
+            bottomLeft: isMe
+                ? const Radius.circular(12)
+                : const Radius.circular(0),
+            bottomRight: isMe
+                ? const Radius.circular(0)
+                : const Radius.circular(12),
           ),
         ),
         child: Column(
-          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Text(
               msg.text,
@@ -161,7 +174,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageInput() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.all(10),
       // Use surface color or a dark neutral for dark mode
@@ -174,7 +187,9 @@ class _ChatScreenState extends State<ChatScreen> {
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
                 hintText: 'Digite sua mensagem...',
-                hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
                   borderSide: BorderSide.none,
@@ -182,7 +197,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 filled: true,
                 // input background
                 fillColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
               ),
               textCapitalization: TextCapitalization.sentences,
             ),

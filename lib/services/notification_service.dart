@@ -47,7 +47,7 @@ class NotificationService {
       android: initializationSettingsAndroid,
     );
 
-    await _localNotifications.initialize(
+    await _localNotifications.initialize(settings: 
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Handle notification tap
@@ -62,10 +62,10 @@ class NotificationService {
 
       if (notification != null && android != null) {
         _localNotifications.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          NotificationDetails(
+          id: notification.hashCode,
+          title: notification.title,
+          body: notification.body,
+          notificationDetails: NotificationDetails(
             android: AndroidNotificationDetails(
               channel.id,
               channel.name,

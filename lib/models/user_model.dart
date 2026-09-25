@@ -36,10 +36,10 @@ class UserModel {
 
   /// Estado (UF) do usuário.
   final String? estado;
-  
+
   /// Cidade/Distrito do usuário.
   final String? cidade;
-  
+
   /// ID da igreja vinculada (pode ser null).
   final String? churchId;
 
@@ -94,11 +94,13 @@ class UserModel {
   factory UserModel.fromMap(Map<String, dynamic> map) {
     // Logic to migrate/infer role from legacy booleans if role doesn't exist
     String inferredRole = map['role'] ?? 'USER';
-    
+
     // If role is undefined/USER but isAdmin is explicitly true (legacy data)
     if (map['role'] == null) {
-      if (map['isAdmin'] == true) inferredRole = 'ADMIN';
-      else if (map['isHelper'] == true) inferredRole = 'HELPER';
+      if (map['isAdmin'] == true) {
+        inferredRole = 'ADMIN';
+      } else if (map['isHelper'] == true)
+        inferredRole = 'HELPER';
     }
 
     return UserModel(
@@ -121,12 +123,14 @@ class UserModel {
   /// Extrai o ID do documento para preencher o campo 'uid'.
   factory UserModel.fromDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     // Logic to migrate/infer role
     String inferredRole = data['role'] ?? 'USER';
     if (data['role'] == null) {
-      if (data['isAdmin'] == true) inferredRole = 'ADMIN';
-      else if (data['isHelper'] == true) inferredRole = 'HELPER';
+      if (data['isAdmin'] == true) {
+        inferredRole = 'ADMIN';
+      } else if (data['isHelper'] == true)
+        inferredRole = 'HELPER';
     }
 
     return UserModel(

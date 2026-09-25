@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/user_provider.dart';
 import '../../main.dart';
 
@@ -25,7 +24,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (message.contains('invalid-credential')) return 'Credenciais inválidas.';
     if (message.contains('invalid-email')) return 'E-mail inválido.';
     if (message.contains('user-disabled')) return 'Usuário desativado.';
-    if (message.contains('too-many-requests')) return 'Muitas tentativas. Tente mais tarde.';
+    if (message.contains('too-many-requests'))
+      return 'Muitas tentativas. Tente mais tarde.';
     return 'Erro ao entrar: Verifique seus dados.';
   }
 
@@ -43,7 +43,11 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.menu_book_rounded, size: 80, color: Colors.blue),
+                const Icon(
+                  Icons.menu_book_rounded,
+                  size: 80,
+                  color: Colors.blue,
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'Biblioteca Guiar',
@@ -53,9 +57,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) => value!.isEmpty ? 'Informe o email' : null,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Informe o email' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -64,7 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Senha',
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
-                      icon: Icon(_isObscured ? Icons.visibility : Icons.visibility_off),
+                      icon: Icon(
+                        _isObscured ? Icons.visibility : Icons.visibility_off,
+                      ),
                       onPressed: () {
                         setState(() {
                           _isObscured = !_isObscured;
@@ -73,7 +83,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   obscureText: _isObscured,
-                  validator: (value) => value!.isEmpty ? 'Informe a senha' : null,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Informe a senha' : null,
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -93,20 +104,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           try {
                             // 4. Chamada Async
-                            await Provider.of<UserProvider>(context, listen: false)
-                                .signIn(_emailController.text.trim(), _passwordController.text.trim());
+                            await Provider.of<UserProvider>(
+                              context,
+                              listen: false,
+                            ).signIn(
+                              _emailController.text.trim(),
+                              _passwordController.text.trim(),
+                            );
 
                             // 2. LOG DE DEBUG
-                            print("--- UI: Login Sucesso! Navegando para Home... ---");
+                            print(
+                              "--- UI: Login Sucesso! Navegando para Home... ---",
+                            );
 
                             // 3. NAVEGAÇÃO SEGURA (Remove tudo e vai para a raiz, forçando reload do AuthWrapper)
                             if (mounted) {
-                              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                              Navigator.of(
+                                context,
+                              ).pushNamedAndRemoveUntil('/', (route) => false);
                             }
                           } catch (e) {
                             // ERRO:
                             print("--- UI: Erro recebido na tela: $e ---");
-                            
+
                             // NÃO verificamos 'mounted' aqui para o SnackBar, pois a chave é global.
                             // Mas se fôssemos fazer setState para algo local, precisaríamos.
                             // Como vamos usar a chave global, não tem problema se a tela desmontou.
@@ -114,9 +134,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             String msg = "Erro desconhecido";
                             if (e.toString().contains('user-not-found')) {
                               msg = "Usuário não encontrado.";
-                            } else if (e.toString().contains('wrong-password')) {
+                            } else if (e.toString().contains(
+                              'wrong-password',
+                            )) {
                               msg = "Senha incorreta.";
-                            } else if (e.toString().contains('invalid-credential')) {
+                            } else if (e.toString().contains(
+                              'invalid-credential',
+                            )) {
                               msg = "Credenciais inválidas.";
                             } else if (e.toString().contains('invalid-email')) {
                               msg = "E-mail inválido.";
@@ -129,8 +153,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 content: Text(msg),
                                 backgroundColor: Colors.red,
                                 behavior: SnackBarBehavior.floating,
-                                margin: const EdgeInsets.only(top: 20, left: 20, right: 20),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                margin: const EdgeInsets.only(
+                                  top: 20,
+                                  left: 20,
+                                  right: 20,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                             );
                           } finally {

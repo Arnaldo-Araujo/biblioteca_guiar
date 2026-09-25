@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/custom_network_image.dart';
 import '../../widgets/delete_account_dialog.dart';
@@ -74,9 +73,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar perfil: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao atualizar perfil: $e')));
       }
     }
   }
@@ -117,7 +116,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         backgroundColor: Colors.blue,
                         radius: 20,
                         child: IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                          icon: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           onPressed: _pickImage,
                         ),
                       ),
@@ -163,7 +166,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
                     TextButton.icon(
                       onPressed: () => _showDeleteAccountDialog(context),
-                      icon: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                      icon: const Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.red,
+                      ),
                       label: const Text(
                         'Encerrar minha conta',
                         style: TextStyle(color: Colors.red),
@@ -183,17 +189,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context: context,
       builder: (context) => DeleteAccountDialog(
         onDisable: (feedback) async {
-          await Provider.of<UserProvider>(context, listen: false)
-              .disableAccount(feedback);
+          await Provider.of<UserProvider>(
+            context,
+            listen: false,
+          ).disableAccount(feedback);
           if (context.mounted) {
-            Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/login', (route) => false);
           }
         },
         onDeletePermanently: (feedback, password) async {
-          await Provider.of<UserProvider>(context, listen: false)
-              .deleteAccountPermanently(feedback, password);
+          await Provider.of<UserProvider>(
+            context,
+            listen: false,
+          ).deleteAccountPermanently(feedback, password);
           if (context.mounted) {
-            Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/login', (route) => false);
           }
         },
       ),

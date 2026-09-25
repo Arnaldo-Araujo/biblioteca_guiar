@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
-import '../models/message_model.dart';
 
 class ChatProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -15,20 +14,18 @@ class ChatProvider extends ChangeNotifier {
     final timestamp = Timestamp.now();
 
     // 1. Add message to subcollection
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add({
-      'senderId': sender.uid,
-      'text': text,
-      'timestamp': timestamp,
-      'isRead': false,
-    });
+    await _firestore.collection('chats').doc(chatId).collection('messages').add(
+      {
+        'senderId': sender.uid,
+        'text': text,
+        'timestamp': timestamp,
+        'isRead': false,
+      },
+    );
 
     // 2. Update Chat Metadata (Inbox Item)
     final chatDocRef = _firestore.collection('chats').doc(chatId);
-    
+
     final Map<String, dynamic> updateData = {
       'lastMessage': text,
       'lastMessageTime': timestamp,
@@ -42,8 +39,8 @@ class ChatProvider extends ChangeNotifier {
     // If the sender is ADMIN, we don't increment (or we could handle logic for User unread, but focused on Admin Inbox).
     if (!sender.isAdmin) {
       updateData['unreadCount'] = FieldValue.increment(1);
-    } 
-    // If Admin sends, we might want to reset unreadCount? 
+    }
+    // If Admin sends, we might want to reset unreadCount?
     // Usually unreadCount is reset when Admin OPENS the chat, not when they reply.
     // So we leave it as is or handle it in markAsRead.
 
@@ -86,11 +83,9 @@ class ChatProvider extends ChangeNotifier {
   // 4. Mark messages as read (Optional but good)
   Future<void> markChatAsRead(String chatId) async {
     // Reset unread count in the chat doc
-    await _firestore.collection('chats').doc(chatId).update({
-      'unreadCount': 0,
-    });
-    
-    // Ideally we would also update all messages to isRead=true, 
+    await _firestore.collection('chats').doc(chatId).update({'unreadCount': 0});
+
+    // Ideally we would also update all messages to isRead=true,
     // but for simple Inbox count, the doc field is enough.
   }
 }

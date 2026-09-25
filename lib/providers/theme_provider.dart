@@ -13,7 +13,7 @@ class ThemeProvider extends ChangeNotifier {
   void _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     final String? themeString = prefs.getString('theme_mode');
-    
+
     if (themeString != null) {
       if (themeString == 'ThemeMode.light') {
         _themeMode = ThemeMode.light;
@@ -29,7 +29,7 @@ class ThemeProvider extends ChangeNotifier {
   void setTheme(ThemeMode mode) async {
     _themeMode = mode;
     notifyListeners();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('theme_mode', mode.toString());
   }
@@ -92,7 +92,6 @@ class ThemeProvider extends ChangeNotifier {
         primary: Colors.greenAccent,
         secondary: Colors.greenAccent,
         surface: Color(0xFF1F1F1F),
-        background: Color(0xFF121212),
       ),
       useMaterial3: true,
     );
